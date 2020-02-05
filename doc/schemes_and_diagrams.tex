@@ -62,7 +62,7 @@
 Hamiltonian:
 
 \begin{equation}
-  \hat{H}_{U_p(4)} = \beta \cas{2}{so_p(4)} + \gamma \cas{2}{so_p(3)} + \gamma_2\left[\cas{2}{so_p(3)}\right]^2 + \kappa \cas{2}{so_p(4)}\cas{2}{so_p(3)}
+  \hat{H}_{U_p(4)} = \beta \; \cas{2}{so_p(4)} + \gamma \; \cas{2}{so_p(3)} + \gamma_2 \; \left[\cas{2}{so_p(3)}\right]^2 + \kappa \; \cas{2}{so_p(4)}\cas{2}{so_p(3)}
 \end{equation}
 
 \begin{itemize}
@@ -77,5 +77,29 @@ Hamiltonian:
   \item Function: \texttt{RME\_Qp2}
   \end{itemize}
 \end{itemize}
+
+\section{$U_q(4)$ Module $\rightarrow$ \texttt{MOD\_Uq4.f90}}
+
+Hamiltonian:
+
+\begin{equation}
+  \hat{H}_{U_q(4)} = a \; \cas{1}{u_q(3)} + b \; \cas{2}{u_q(3)} + c \; \cas{2}{so_q(3)} + d \; \cas{2}{so_q(4)}
+\end{equation}
+
+\begin{itemize}
+\item Global definitions:
+  \begin{itemize}
+  \item Nqval: $U(4)$ Totally symmetric representation.
+  \end{itemize}
+\item Functions:
+  \begin{itemize}
+  \item Function: \texttt{RME\_Casimir\_Uq3}
+  \item Function: \texttt{RME\_Casimir\_SOq3}
+  \item Function: \texttt{RME\_Casimir\_SOq4}
+  \item Function: \texttt{RME\_Qq2}
+  \end{itemize}
+\end{itemize}
+
+\section{$U_p(4)\;\times\;U_q(4)$ Module $\rightarrow$ \texttt{MOD\_Up\_x\_Uq.f90}}
 
 \end{document}
