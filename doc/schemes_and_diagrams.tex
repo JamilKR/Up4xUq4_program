@@ -20,7 +20,12 @@
 
 \newcommand{\cas}[2]{
   \mathcal{C}_{#1}\left[#2\right]
+}
+\newcommand{\Abs}[1]{
+    \left|#1\right|
   }
+  
+  
 
 \author{Jamil KR}
 \title{$U_p(4)\; \times\; U_q(4)$}
@@ -102,4 +107,184 @@ Hamiltonian:
 
 \section{$U_p(4)\;\times\;U_q(4)$ Module $\rightarrow$ \texttt{MOD\_Up\_x\_Uq.f90}}
 
+\begin{itemize}
+\item Global definitions:
+  \begin{itemize}
+    \item
+  \end{itemize}
+\item Functions:
+  \begin{itemize}
+  \item Subroutine: \texttt{dimension\_po}
+  \item Subroutine: \texttt{build\_basis\_po}
+  \item Subroutine: \texttt{initialize\_position\_index}
+  \end{itemize}
+\end{itemize}
+
+\subsection{Building the basis}
+
+We have a block-diagonalizable system dividing the problem in para
+($\text{mod}(J,2)=0$) and ortho ($\text{mod}(J,2)=1$) cases, and
+separating by different $\Lambda$. The states will be stored in the
+same array sorted by $\Lambda$. The dimension of each block will be
+saved in \texttt{dim\_[SYM]}($\Lambda=0$), ... ,
+\texttt{dim\_[SYM]}($\Lambda=\Lambda_{\text{max}}$).
+
+\begin{align}
+  \left.\left[
+  \begin{array}{c}
+    \ket{\psi_{1}^{\Lambda=0} }\\
+    \vdots \\
+    \ket{\psi_{\text{\texttt{dim\_[SYM]}}(\Lambda=0)}^{\Lambda=0}}
+  \end{array}
+  \right]\right\}& \rightarrow \text{1:\texttt{dim\_[SYM]}}(\Lambda=0)
+  \nonumber\\
+  \vdots  \qquad \qquad \qquad &
+  \\
+  \left.\left[
+  \begin{array}{c}
+    \ket{\psi_{1}^{\Lambda=\Lambda_{\text{max}}} }\\
+    \vdots \\
+    \ket{\psi_{\text{\texttt{dim\_[SYM]}}(\Lambda=\Lambda_{\text{max}})}^{\Lambda=\Lambda_{\text{max}}}}
+  \end{array}
+  \right]\right\}& \rightarrow \text{1:\texttt{dim\_[SYM]}}(\Lambda=\Lambda_{\text{max}}) \nonumber
+\end{align}
+
+Therefore, the basis array is as follow:
+
+\begin{equation}
+  \text{\texttt{basis\_[SYM]}}=\left[\ket{\psi_{1}^{\Lambda=0}},...,\psi_{\text{\texttt{dim\_[SYM]}}(\Lambda=0)}^{\Lambda=0},...,\ket{\psi_{1}^{\Lambda=\Lambda_{\text{max}}}},...,\psi_{\text{\texttt{dim\_[SYM]}}(\Lambda=\Lambda_{\text{max}})}^{\Lambda=\Lambda_{\text{max}}}\right]
+\end{equation}
+
+Each element of the the basis must cotain information about quantum numbers:
+
+\begin{align}
+  \ket{\psi_i^{\Lambda}}=\left(w\;J;\;n\;L;\;\Lambda\in\left[\Abs{J-L},J+L\right]\right)
+\end{align}
+
+\subsubsection{Dimension: \texttt{dimension\_po}}
+
+Fortran90 subroutine.
+
+\vbox{
+Inputs:
+\begin{itemize}
+\item Npval. Integer
+\item Nqval. Integer
+\item $\Lambda_{\text{max}}$. Integer
+\end{itemize}
+}
+
+\vbox{
+Outputs:
+\begin{itemize}
+\item dim\_para. Integer, dimension(0:$\Lambda_{\text{max}}$)
+\item dim\_ortho. Integer, dimension(0:$\Lambda_{\text{max}}$)
+\end{itemize}
+}
+
+\subsubsection{Basis: \texttt{build\_basis\_po}}
+
+\vbox{
+  Inputs:
+  \begin{itemize}
+  \item Npval. Integer
+  \item Nqval. Integer
+  \item $\Lambda_{\text{max}}$. Integer
+  \item total\_para.  Integer, total dimension of para  basis
+  \item total\_ortho. Integer, total dimension of ortho basis
+  \item dim\_para. Integer, dimension(0:$\Lambda_{\text{max}}$)
+  \item dim\_ortho. Integer, dimension(0:$\Lambda_{\text{max}}$)
+  \end{itemize}
+}
+
+\vbox{
+  Outputs:
+  \begin{itemize}
+  \item basis\_para. Integer, dimension$\left(1:5,\;1:\sum\limits_{\Lambda=0}^{\Lambda_{\text{max}}} \text{\texttt{dim\_para}}(\Lambda)\right)$
+  \item basis\_ortho. Integer, dimension$\left(1:5,\;1:\sum\limits_{\Lambda=0}^{\Lambda_{\text{max}}} \text{\texttt{dim\_ortho}}(\Lambda)\right)$
+    \begin{itemize}
+    \item basis\_[SYM](1,:) $\longrightarrow\;w$
+    \item basis\_[SYM](2,:) $\longrightarrow\;J$
+    \item basis\_[SYM](3,:) $\longrightarrow\;n$
+    \item basis\_[SYM](4,:) $\longrightarrow\;L$
+    \item basis\_[SYM](5,:) $\longrightarrow\;\Lambda$
+      \end{itemize}
+  \end{itemize}
+}
+
+\textbf{Para-states}
+\begin{align} &\text{LOOP: } J=0,2,..., N_p-\text{mod}(N_p,2)
+\nonumber \\ & \quad\text{LOOP: }L=0,1,...,N_q \nonumber \\ &
+\quad\quad\text{CONDITIONAL: } \Abs{J-L}\leq \Lambda_{max} \text{ to
+continue, else go to next }L \nonumber \\ &\quad\quad\quad\text{LOOP:
+} \Lambda=\Abs{J-L},\Abs{J-L}+1,...,\min(\Lambda_{max},J+L) \nonumber
+\\ &\quad\quad\quad\quad\text{LOOP: } w=0,2,4,...J \nonumber \\
+&\quad\quad\quad\quad\quad\text{LOOP: } n=L,L+2,...,Nq \\
+&\quad\quad\quad\quad\quad\quad
+\text{\texttt{basis\_para}}\left(1,\text{\texttt{dim\_para}}\left(\Lambda\right)\right)=w
+\nonumber \\ &\quad\quad\quad\quad\quad\quad
+\text{\texttt{basis\_para}}\left(2,\text{\texttt{dim\_para}}\left(\Lambda\right)\right)=J
+\nonumber \\ &\quad\quad\quad\quad\quad\quad
+\text{\texttt{basis\_para}}\left(3,\text{\texttt{dim\_para}}\left(\Lambda\right)\right)=n
+\nonumber \\ &\quad\quad\quad\quad\quad\quad
+\text{\texttt{basis\_para}}\left(4,\text{\texttt{dim\_para}}\left(\Lambda\right)\right)=L
+\nonumber \\ &\quad\quad\quad\quad\quad\quad
+\text{\texttt{basis\_para}}\left(5,\text{\texttt{dim\_para}}\left(\Lambda\right)\right)=\Lambda
+\nonumber
+\end{align}
+
+
+\textbf{Ortho-states}
+\begin{align}
+  &\text{LOOP: } J=1,3,..., N_p-(1-\text{mod}(N_p,2))
+    \nonumber \\
+  & \quad\text{LOOP: }L=0,1,...,N_q \nonumber \\
+  & \quad\quad\text{CONDITIONAL: } \Abs{J-L}\leq \Lambda_{max} \text{ to
+    continue, else go to next }L \nonumber \\
+  &\quad\quad\quad\text{LOOP:
+} \Lambda=\Abs{J-L},\Abs{J-L}+1,...,\min(\Lambda_{max},J+L) \nonumber
+  \\
+  &\quad\quad\quad\quad\text{LOOP: } w=1,3,5,...J \nonumber \\
+  &\quad\quad\quad\quad\quad\text{LOOP: } n=L,L+2,...,Nq \\
+  &\quad\quad\quad\quad\quad\quad
+\text{\texttt{basis\_ortho}}\left(1,\text{\texttt{dim\_ortho}}\left(\Lambda\right)\right)=w
+    \nonumber \\
+  &\quad\quad\quad\quad\quad\quad
+\text{\texttt{basis\_ortho}}\left(2,\text{\texttt{dim\_ortho}}\left(\Lambda\right)\right)=J
+    \nonumber \\
+  &\quad\quad\quad\quad\quad\quad
+\text{\texttt{basis\_ortho}}\left(3,\text{\texttt{dim\_ortho}}\left(\Lambda\right)\right)=n
+    \nonumber \\
+  &\quad\quad\quad\quad\quad\quad
+\text{\texttt{basis\_ortho}}\left(4,\text{\texttt{dim\_ortho}}\left(\Lambda\right)\right)=L
+    \nonumber \\
+  &\quad\quad\quad\quad\quad\quad
+\text{\texttt{basis\_ortho}}\left(5,\text{\texttt{dim\_ortho}}\left(\Lambda\right)\right)=\Lambda
+\nonumber
+\end{align}
+
+\subsubsection{Pseudo-pointer: \texttt{initialize\_position\_index}}
+
+
+\vbox{\em
+  subroutine initialize\_position\_index(ijk,partial\_dim,lambda\_max) \\
+    !\\
+    ! Inputs:\\
+    !        o) partial\_dim: Integer array dimension 0:lambda\_max\\
+    !        o) lambda\_max\\
+    !\\
+    ! Output:\\
+    !        o) ijk: Integer array dimension 0:lambda\_max\\
+    !\\
+    ! This functions initializes the initial integer "pointer" ijk(0:lambda\_max),\\
+    ! so that\\
+    ! ijk(0) = 1\\
+    ! ijk(1) = position where lambda=1 block starts\\
+    ! ...\\
+    ! ijk(lambda\_max) = position where lambda=lambda\_max block stats\\
+    !\\
+    ! This function is going to be of vital importance during the program's development\\
+    !\\
+}
+   
 \end{document}
