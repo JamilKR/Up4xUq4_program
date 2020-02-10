@@ -1,0 +1,5 @@
+1. Time and memory optimation of factorial function in MOD_matfun.f90
+   Recursive vs normal function?
+   Integer vs double precision?
+
+

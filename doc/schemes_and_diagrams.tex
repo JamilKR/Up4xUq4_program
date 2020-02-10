@@ -22,9 +22,17 @@
   \mathcal{C}_{#1}\left[#2\right]
 }
 \newcommand{\Abs}[1]{
-    \left|#1\right|
-  }
-  
+  \left|#1\right|
+}
+
+\newcommand{\wigsixj}[6]{
+  \left\{
+    \begin{matrix}
+      #1 & #2 & #3 \\
+      #4 & #5 & #6
+    \end{matrix}
+  \right\}
+}
   
 
 \author{Jamil KR}
@@ -60,6 +68,9 @@
 \item Functions:
   \begin{itemize}
   \item \texttt{p\_symbol}(a,b) $=\; (a)_s\;=\;a(a+1)...(a+s-1)$
+  \item \texttt{factorial}(n) $=\;n!$
+  \item \texttt{delta\_function}(a,b,c) $=\;\Delta(\text{abc})$
+  \item \texttt{wigner\_6j}$(j_1,j_2,j_3,l_1,l_2,l_3)\;=\;\wigsixj{j_1}{j_2}{j_3}{l_1}{l_2}{l_3}$
   \end{itemize}
 \end{itemize}
 
@@ -117,6 +128,7 @@ Hamiltonian:
   \item Subroutine: \texttt{dimension\_po}
   \item Subroutine: \texttt{build\_basis\_po}
   \item Subroutine: \texttt{initialize\_position\_index}
+  %%\item Function: \texttt{RME\_QpQq\_0}
   \end{itemize}
 \end{itemize}
 
