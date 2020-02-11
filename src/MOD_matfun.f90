@@ -2,7 +2,7 @@ module MOD_matfun
   !
   implicit none
   !
-  ! Usefull Math Functions
+  ! Useful Math Functions
   !
 contains
   !
@@ -75,8 +75,8 @@ contains
   !
   function wigner_6j(j1,j2,j3,l1,l2,l3)
     !
-    ! Wigner 6j Symbol defined in eq. (8.62) of the book
-    ! Lie Algebras and App. of A. Iachello.
+    ! eq. (15.38) DS-Talmi
+    ! Nuclear Shell Theory 
     !
     ! LaTeX: \{ j1 j2 j3 \\ l1 l2 l3 \}
     !
@@ -91,7 +91,7 @@ contains
     ! Triangular Condition:
 #define aaa j1
 #define bbb j2
-#define ccc l3
+#define ccc j3
     if ( (abs(aaa+bbb) .lt. ccc) .or. (abs(aaa-bbb) .gt. ccc) ) then ! 1
        !
        return
@@ -135,24 +135,24 @@ contains
     end if
 #undef aaa
 #undef bbb
-#undef cccx
+#undef ccc
     !
-    t_min = min(j1+j2+l1+l2,j2+j3+l2+l3,j3+j1+l3+l1)
-    t_max = max(j1+l2+j3,j1+l2+l3,l1+j2+l3,l1+l2+j3)
+    t_min = max(j1+j2+j3,j1+l2+l3,l1+j2+l3,l1+l2+j3)
+    t_max = min(j1+j2+l1+l2,j2+j3+l2+l3,j1+j3+l1+l3)
+    !
+    if (t_min .gt. t_max) STOP "ERROR! wigner_6j: t_min > t_max"
     !
     do t = t_min,t_max
        !
-       wigner_6j = wigner_6j  + ( dble( (-1)**t ) )* ( factorial(t+1) / ( &
-            factorial(t - (j1+j2+j3)) * factorial(t - (j1+l2+l3)) * &
-            factorial(t - (l1+j2+l3)) * factorial(j1+j2+l1+l2 - t) * &
-            factorial(j2+j3+l2+l3 - t) * factorial(j3+j1+l3+l1 - t) ) )
+       wigner_6j = wigner_6j  + ( dble( (-1)**t ) )* ( factorial(t+1) / &
+            ( factorial(t-j1-j2-j3) * factorial(t-j1-l2-l3) * factorial(t-l1-j2-l3) * &
+            factorial(t-l1-l2-j3) * factorial(j1+j2+l1+l2-t) * factorial(j2+j3+l2+l3-t) * &
+            factorial(j1+j3+l1+l3-t) ) ) 
        !
     enddo
     !
-    if ( t_max .ge. t_min ) then
-       wigner_6j = wigner_6j * delta_function(j1,j2,j3) * delta_function(j1,l2,l3) * &
-            delta_function(l1,j2,l3)*delta_function(l1,l2,j3)
-    end if
+    wigner_6j = wigner_6j * delta_function(j1,j2,j3) * delta_function(j1,l2,l3) * &
+         delta_function(l1,j2,l3)*delta_function(l1,l2,j3)
     !
   end function wigner_6j
   !

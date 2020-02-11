@@ -5,9 +5,11 @@ program test_3
   integer:: lambda_max, Nq, Np, i, total_para,total_ortho
   integer,allocatable:: dim_para(:),dim_ortho(:),ijk(:)
   integer,allocatable:: basis_para(:,:),basis_ortho(:,:)
-  Np=4
-  Nq=2
+  Np=34
+  Nq=20
 
+  
+  
   lambda_max=5
 
   allocate(dim_para(0:lambda_max),dim_ortho(0:lambda_max),ijk(0:lambda_max))
@@ -46,5 +48,15 @@ program test_3
           &s_ortho(4,i),"-",basis_ortho(5,i)
   enddo
 
+  
+  write(*,*) '---------------------------------------------------------------------------------'
+
+  call initialize_position_index(ijk,dim_ortho,lambda_max)
+  print*,ijk(5),dim_ortho(5)
+  do i = ijk(5),dim_ortho(5)+ijk(5)-1
+     write(*,10) "p -",basis_ortho(1,i),"-",basis_ortho(2,i),"-",basis_ortho(3,i),"-",basis_&
+          &ortho(4,i),"-",basis_ortho(5,i)
+  enddo
+  
 10 format(5(A,I3))
 end program test_3

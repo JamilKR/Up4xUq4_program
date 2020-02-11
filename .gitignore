@@ -4,7 +4,7 @@
 *.pyc
 *.a
 *.so
-./doc/*.aux
-./doc/*.log
+*.aux
+*.log
 *.out
 

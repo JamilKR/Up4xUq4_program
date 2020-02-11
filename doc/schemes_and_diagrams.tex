@@ -70,7 +70,10 @@
   \item \texttt{p\_symbol}(a,b) $=\; (a)_s\;=\;a(a+1)...(a+s-1)$
   \item \texttt{factorial}(n) $=\;n!$
   \item \texttt{delta\_function}(a,b,c) $=\;\Delta(\text{abc})$
-  \item \texttt{wigner\_6j}$(j_1,j_2,j_3,l_1,l_2,l_3)\;=\;\wigsixj{j_1}{j_2}{j_3}{l_1}{l_2}{l_3}$
+  \item
+    \texttt{wigner\_6j}$(j_1,j_2,j_3,l_1,l_2,l_3)\;=\;\wigsixj{j_1}{j_2}{j_3}{l_1}{l_2}{l_3}$
+    \footnote{Definition of the book \textit{Nuclear Shell Theory} of
+      Amos de-Shalit and Igal Talmi}
   \end{itemize}
 \end{itemize}
 
@@ -128,7 +131,7 @@ Hamiltonian:
   \item Subroutine: \texttt{dimension\_po}
   \item Subroutine: \texttt{build\_basis\_po}
   \item Subroutine: \texttt{initialize\_position\_index}
-  %%\item Function: \texttt{RME\_QpQq\_0}
+  \item Function: \texttt{build\_Qp\_x\_Qq\_0\_matrix}
   \end{itemize}
 \end{itemize}
 
@@ -226,23 +229,27 @@ Outputs:
 
 \textbf{Para-states}
 \begin{align} &\text{LOOP: } J=0,2,..., N_p-\text{mod}(N_p,2)
-\nonumber \\ & \quad\text{LOOP: }L=0,1,...,N_q \nonumber \\ &
-\quad\quad\text{CONDITIONAL: } \Abs{J-L}\leq \Lambda_{max} \text{ to
-continue, else go to next }L \nonumber \\ &\quad\quad\quad\text{LOOP:
-} \Lambda=\Abs{J-L},\Abs{J-L}+1,...,\min(\Lambda_{max},J+L) \nonumber
-\\ &\quad\quad\quad\quad\text{LOOP: } w=0,2,4,...J \nonumber \\
-&\quad\quad\quad\quad\quad\text{LOOP: } n=L,L+2,...,Nq \\
-&\quad\quad\quad\quad\quad\quad
-\text{\texttt{basis\_para}}\left(1,\text{\texttt{dim\_para}}\left(\Lambda\right)\right)=w
-\nonumber \\ &\quad\quad\quad\quad\quad\quad
-\text{\texttt{basis\_para}}\left(2,\text{\texttt{dim\_para}}\left(\Lambda\right)\right)=J
-\nonumber \\ &\quad\quad\quad\quad\quad\quad
-\text{\texttt{basis\_para}}\left(3,\text{\texttt{dim\_para}}\left(\Lambda\right)\right)=n
-\nonumber \\ &\quad\quad\quad\quad\quad\quad
-\text{\texttt{basis\_para}}\left(4,\text{\texttt{dim\_para}}\left(\Lambda\right)\right)=L
-\nonumber \\ &\quad\quad\quad\quad\quad\quad
-\text{\texttt{basis\_para}}\left(5,\text{\texttt{dim\_para}}\left(\Lambda\right)\right)=\Lambda
-\nonumber
+  \nonumber \\ & \quad\text{LOOP: }L=0,1,...,N_q \nonumber \\ &
+  \quad\quad\text{CONDITIONAL: } \Abs{J-L}\leq \Lambda_{max} \text{ to
+                                                                continue, else go to next }L \nonumber \\
+              &\quad\quad\quad\text{LOOP: }
+                \Lambda=\Abs{J-L},\Abs{J-L}+1,...,\min(\Lambda_{max},J+L)
+                \nonumber
+  \\ &\quad\quad\quad\quad\text{LOOP: } w=N_p-\text{mod}(N_p,2), N_p-\text{mod}(N_p,2)-2,... ,J\nonumber \\
+              &\quad\quad\quad\quad\quad\text{LOOP: } n=L,L+2,...,Nq \\
+              &\quad\quad\quad\quad\quad\quad
+                \text{\texttt{basis\_para}}\left(1,\text{\texttt{dim\_para}}\left(\Lambda\right)\right)=w
+                \nonumber \\ &\quad\quad\quad\quad\quad\quad
+                               \text{\texttt{basis\_para}}\left(2,\text{\texttt{dim\_para}}\left(\Lambda\right)\right)=J
+                               \nonumber \\
+              &\quad\quad\quad\quad\quad\quad
+                \text{\texttt{basis\_para}}\left(3,\text{\texttt{dim\_para}}\left(\Lambda\right)\right)=n
+                \nonumber \\ &\quad\quad\quad\quad\quad\quad
+                               \text{\texttt{basis\_para}}\left(4,\text{\texttt{dim\_para}}\left(\Lambda\right)\right)=L
+                               \nonumber \\
+              &\quad\quad\quad\quad\quad\quad
+                \text{\texttt{basis\_para}}\left(5,\text{\texttt{dim\_para}}\left(\Lambda\right)\right)=\Lambda
+                \nonumber
 \end{align}
 
 
@@ -256,7 +263,7 @@ continue, else go to next }L \nonumber \\ &\quad\quad\quad\text{LOOP:
   &\quad\quad\quad\text{LOOP:
 } \Lambda=\Abs{J-L},\Abs{J-L}+1,...,\min(\Lambda_{max},J+L) \nonumber
   \\
-  &\quad\quad\quad\quad\text{LOOP: } w=1,3,5,...J \nonumber \\
+  &\quad\quad\quad\quad\text{LOOP: } w=N_p-(1-\text{mod}(N_p,2)),N_p-(1-\text{mod}(N_p,2))-2,...,J \nonumber \\
   &\quad\quad\quad\quad\quad\text{LOOP: } n=L,L+2,...,Nq \\
   &\quad\quad\quad\quad\quad\quad
 \text{\texttt{basis\_ortho}}\left(1,\text{\texttt{dim\_ortho}}\left(\Lambda\right)\right)=w

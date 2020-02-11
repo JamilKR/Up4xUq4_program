@@ -40,7 +40,7 @@ contains
              !
              LAMB_p: do lam = abs(j-l), min(j+l,lambda_max), 1
                 !
-                do w = 0,J,2 ! para-case --> J even
+                do w = Np,j,-2 ! para-case --> J even
                    do n = L,Nq,2
                       !
                       dim_para(lam) = dim_para(lam) + 1
@@ -68,7 +68,7 @@ contains
              !
              LAMB_o: do lam = abs(j-l), min(j+l,lambda_max), 1
                 !
-                do w = 1,J,2 ! ortho-case --> J odd
+                do w = Np,j,-2 ! ortho-case --> J odd
                    do n = L,Nq,2
                       !
                       dim_ortho(lam) = dim_ortho(lam) + 1
@@ -127,10 +127,9 @@ contains
              !
              LAMB_p: do lam = abs(j-l), min(j+l,lambda_max), 1
                 !
-                do w = 0,J,2 ! para-case --> J even
+                do w = Np,j,-2 ! para-case --> J even
                    do n = L,Nq,2
                       !
-                      if ( lam==1 ) print*, ijk(lam)
                       basis_para(1,ijk(lam)) = w
                       basis_para(2,ijk(lam)) = J
                       basis_para(3,ijk(lam)) = n
@@ -166,7 +165,7 @@ contains
              !
              LAMB_o: do lam = abs(j-l), min(j+l,lambda_max), 1
                 !
-                do w = 1,J,2 ! ortho-case --> J odd
+                do w = Np,j,-2 ! ortho-case --> J odd
                    do n = L,Nq,2
                       !
                       basis_ortho(1,ijk(lam)) = w
@@ -221,6 +220,48 @@ contains
     enddo
     !
   end subroutine initialize_position_index
+  !
+  !*****************************************************************************************
+  !
+  function build_Qp_x_Qq_0_matrix(basis,dim,iprint)
+    !
+    ! sqrt(5) factor omited!
+    !
+    implicit none
+    !
+    integer,intent(in):: dim
+    integer,intent(in):: basis(1:5,1:dim)
+    integer,optional:: iprint
+    double precision::   build_Qp_x_Qq_0_matrix(1:dim,1:dim)
+    integer:: i,j
+    !
+    build_Qp_x_Qq_0_matrix=0.0d0
+    !
+    do i=1,dim ! bra-index
+       !
+       if(present(iprint)) write(*,"(7(A,I3),A)") "<[",Npval,"],",basis(1,i),",",&
+            basis(2,i),";[",Nqval,"],",basis(3,i),",",basis(4,i),";",basis(5,i),"|"
+       !
+       do j=1,dim ! ket-index
+          !
+          if(present(iprint)) write(*,"(T34,7(A,I3),A)") "|[",Npval,"],",&
+               basis(1,j),",",basis(2,j),";[",Nqval,"],",basis(3,j),",",basis(4,j),";", &
+               basis(5,i),">"
+          !
+          if ( basis(5,i) /= basis(5,j) ) cycle
+          !
+          build_Qp_x_Qq_0_matrix(i,j) = dble( (-1)**(basis(4,i)+basis(5,i)+basis(2,j)) ) * &
+               wigner_6j(basis(2,i),basis(4,i),basis(5,i), basis(4,j),basis(2,j),2) * &
+               RME_Qq2(basis(3,i),basis(4,i),basis(3,j),basis(4,j)) * &
+               RME_Qp2(basis(1,i),basis(2,i),basis(1,j),basis(2,j))
+          !
+          if(present(iprint))  write(*,"(T64,F15.4)") build_Qp_x_Qq_0_matrix(i,j)
+          !
+       end do
+       !
+    enddo      
+    !
+  end function build_Qp_x_Qq_0_matrix
   !
   !*****************************************************************************************
   !
