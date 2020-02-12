@@ -31,11 +31,11 @@ program test_5
   
   allocate(A(1:total_para,1:total_para), B(1:total_para,1:total_para))
 
-  A=build_Qp_x_Qq_0_matrix(basis_para,total_para,iprint=1)
+  A=build_Qp_x_Qq_0_matrix(basis_para,total_para,iprint = 1)
 
   print*,"***********************************************************************"
   
-  B=build_Qp_x_Qq_0_matrix(basis_ortho,total_ortho,iprint=1)
+  B=build_Qp_x_Qq_0_matrix(basis_ortho,total_ortho)
 
   print*, total_para, total_ortho
 

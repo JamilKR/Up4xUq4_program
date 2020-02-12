@@ -232,19 +232,26 @@ contains
     integer,intent(in):: dim
     integer,intent(in):: basis(1:5,1:dim)
     integer,optional:: iprint
+    integer:: iprint2
     double precision::   build_Qp_x_Qq_0_matrix(1:dim,1:dim)
     integer:: i,j
+    !
+    if ( present(iprint) ) then
+       iprint2 = iprint
+    else
+       iprint2 = 0
+    endif
     !
     build_Qp_x_Qq_0_matrix=0.0d0
     !
     do i=1,dim ! bra-index
        !
-       if(present(iprint)) write(*,"(7(A,I3),A)") "<[",Npval,"],",basis(1,i),",",&
+       if(iprint2 .ge. 1) write(*,"(7(A,I3),A)") "<[",Npval,"],",basis(1,i),",",&
             basis(2,i),";[",Nqval,"],",basis(3,i),",",basis(4,i),";",basis(5,i),"|"
        !
        do j=1,dim ! ket-index
           !
-          if(present(iprint)) write(*,"(T34,7(A,I3),A)") "|[",Npval,"],",&
+          if(iprint2 .ge. 1) write(*,"(T34,7(A,I3),A)") "|[",Npval,"],",&
                basis(1,j),",",basis(2,j),";[",Nqval,"],",basis(3,j),",",basis(4,j),";", &
                basis(5,i),">"
           !
@@ -253,9 +260,9 @@ contains
           build_Qp_x_Qq_0_matrix(i,j) = dble( (-1)**(basis(4,i)+basis(5,i)+basis(2,j)) ) * &
                wigner_6j(basis(2,i),basis(4,i),basis(5,i), basis(4,j),basis(2,j),2) * &
                RME_Qq2(basis(3,i),basis(4,i),basis(3,j),basis(4,j)) * &
-               RME_Qp2(basis(1,i),basis(2,i),basis(1,j),basis(2,j))
+               RME_Qp2(basis(1,i),basis(2,i),basis(1,j),basis(2,j),iprint=iprint2)
           !
-          if(present(iprint))  write(*,"(T64,F15.4)") build_Qp_x_Qq_0_matrix(i,j)
+          if(iprint2 .ge. 1)  write(*,"(T64,F15.4)") build_Qp_x_Qq_0_matrix(i,j)
           !
        end do
        !
