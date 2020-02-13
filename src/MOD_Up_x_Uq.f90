@@ -223,52 +223,189 @@ contains
   !
   !*****************************************************************************************
   !
-  function build_Qp_x_Qq_0_matrix(basis,dim,iprint)
+  function RME_Qp_x_Qq_0(w1,j1,n1,l1,lam1,w2,j2,n2,l2,lam2)
+    !
+    ! < w1 J1, n1 L1, lam1 || [ Qp^2 x Qq^2 ]^0 || w2 J2, n2 L2, lam2 >
     !
     ! sqrt(5) factor omited!
     !
     implicit none
     !
-    integer,intent(in):: dim
-    integer,intent(in):: basis(1:5,1:dim)
-    integer,optional:: iprint
-    integer:: iprint2
-    double precision::   build_Qp_x_Qq_0_matrix(1:dim,1:dim)
-    integer:: i,j
+    integer,intent(in):: w1,j1,n1,l1,lam1, w2,j2,n2,l2,lam2
+    double precision  :: RME_Qp_x_Qq_0
     !
-    if ( present(iprint) ) then
+    RME_Qp_x_Qq_0 = 0.0d0
+    !
+    if ( lam1 /= lam2 ) return
+          !
+    RME_Qp_x_Qq_0 = dble( (-1)**(l1+lam1+j2) ) * &
+         wigner_6j(j1,l1,lam1, l2,j2,2) * &
+         RME_Qq2(n1,l1,n2,l2) * &
+         RME_Qp2(w1,j1,w2,j2)
+    !
+  end function RME_Qp_x_Qq_0
+  !
+  !*****************************************************************************************
+  !
+  function RME_Ip_x_SOq4(w1,j1,n1,l1,lam1,w2,j2,n2,l2,lam2)
+    !
+    ! < w1 J1, n1 L1, lam1 || [ Ip x C_2[SOq(4)] ]^0 || w2 J2, n2 L2, lam2 >
+    !
+    implicit none
+    !
+    integer, intent(in):: w1,J1,n1,L1,lam1, w2,J2,n2,L2,lam2
+    double precision:: RME_Ip_x_SOq4
+    !
+    RME_Ip_x_SOq4 = 0.0d0
+    !
+    if ( (lam1/=lam2) .or. (w1/=w2) .or. (j1/=j2) ) return ! Kronecker deltas
+    !
+    RME_Ip_x_SOq4 = dble( (-1)**(l1+lam1+j1) ) * sqrt( dble(2*lam1+1) ) * &
+         wigner_6j(j1,l1,lam1,l2,j1,0) * RME_Casimir_SOq4(n1,l1,n2,l2)
+    !
+  end function RME_Ip_x_SOq4
+  !
+  !*****************************************************************************************
+  !
+  subroutine build_Up_x_Uq_matrix(basis,matrix,RME_fun,iprint)
+    !
+    ! This function build the para / ortho matrices using the given basis.
+    ! This procedure can be used to build Up4 x Uq4 operators' matrices.
+    !
+    ! INPUTs:
+    !        o) basis:   para/ortho basis
+    !        o) matrix:  square matriz len(basis) x len(basis)
+    !        o) RME_fun: function with w1,j1,n1,l1,lam1,w2,j2,n2,l2,lam2 dependences.
+    !        o) iprint:  printing control
+    !
+    ! OUTPUT:
+    !        o) matrix
+    !
+    ! All position corresponding to lam1 /= lam2 will be ZERO! 
+    !
+    implicit none
+    !
+    integer,intent(in)           :: basis(:,:)
+    double precision,intent(out) :: matrix(:,:)
+    double precision,external    :: RME_fun
+    integer,optional             :: iprint
+    integer:: &
+         lbdim(1:2), & ! Basis lower limit
+         ubdim(1:2), & ! Basis upper limit
+         lmtx(1:2),  & ! Matrix lower limits
+         umtx(1:2),  & ! Matrix upper limits
+         iprint2,    & ! If iprint is not given
+         i,j
+    !
+    if ( present(iprint) ) then 
        iprint2 = iprint
     else
        iprint2 = 0
     endif
     !
-    build_Qp_x_Qq_0_matrix=0.0d0
+    lbdim = lbound(basis)
+    ubdim = ubound(basis)
     !
-    do i=1,dim ! bra-index
-       !
-       if(iprint2 .ge. 1) write(*,"(7(A,I3),A)") "<[",Npval,"],",basis(1,i),",",&
-            basis(2,i),";[",Nqval,"],",basis(3,i),",",basis(4,i),";",basis(5,i),"|"
-       !
-       do j=1,dim ! ket-index
-          !
-          if(iprint2 .ge. 1) write(*,"(T34,7(A,I3),A)") "|[",Npval,"],",&
-               basis(1,j),",",basis(2,j),";[",Nqval,"],",basis(3,j),",",basis(4,j),";", &
-               basis(5,i),">"
-          !
-          if ( basis(5,i) /= basis(5,j) ) cycle
-          !
-          build_Qp_x_Qq_0_matrix(i,j) = dble( (-1)**(basis(4,i)+basis(5,i)+basis(2,j)) ) * &
-               wigner_6j(basis(2,i),basis(4,i),basis(5,i), basis(4,j),basis(2,j),2) * &
-               RME_Qq2(basis(3,i),basis(4,i),basis(3,j),basis(4,j)) * &
-               RME_Qp2(basis(1,i),basis(2,i),basis(1,j),basis(2,j),iprint=iprint2)
-          !
-          if(iprint2 .ge. 1)  write(*,"(T64,F15.4)") build_Qp_x_Qq_0_matrix(i,j)
-          !
-       end do
-       !
-    enddo      
+    lmtx = lbound(matrix)
+    umtx = ubound(matrix)
     !
-  end function build_Qp_x_Qq_0_matrix
+    ! Checking dimensions:
+    !
+    if ( (lbdim(1)/=1) .or. (ubdim(1)/=5) ) STOP "ERROR! build_Up_x_Uq_matrix: &
+         &5 quantum number are needed !!! "
+    !
+    if ( (lmtx(1)/=lmtx(2)) .or. (umtx(1)/=umtx(2)) ) STOP "ERROR! build_Up_x_Uq_matrix: &
+         &matrix must be a square matrix !!! "
+    !
+    if ( (umtx(1)/=ubdim(2)) .or. (lmtx(1)/=lbdim(2)) ) STOP "ERROR! build_Up_x_Uq_matrix: &
+         &the dimensions of the basis and the matrix are different !!! "
+    !
+    matrix = 0.0d0
+    !
+    do i = lmtx(1),umtx(1) ! bra-index
+       !
+       if (iprint2 .ge. 1) write(*,"(/,A,/)") trim(pretty_braket(w=basis(1,i), &
+            j=basis(2,i),n=basis(3,i),l=basis(4,i),lam=basis(5,i),bk='b',Np=Npval,Nq=Nqval))
+       !
+       do j = lmtx(2),umtx(2) ! ket-index
+          !
+          if (iprint2 .ge. 2) write(*,"(T30,A)") trim(pretty_braket(w=basis(1,j), &
+               j=basis(2,j),n=basis(3,j),l=basis(4,j),lam=basis(5,j),bk='k', &
+               Np=Npval,Nq=Nqval))
+          !
+          if ( basis(5,i) /= basis(5,j) ) cycle ! lambda_i must be .eq. to lambda_j
+          !
+          matrix(i,j) = RME_fun(basis(1,i),basis(2,i),basis(3,i),basis(4,i),basis(5,i), &
+               basis(1,j),basis(2,j),basis(3,j),basis(4,j),basis(5,j))
+          !
+          if (iprint2 .ge. 3) write(*,'(/,T50,ES40.5E5,/)') matrix(i,j)
+          !
+       enddo
+       !
+    enddo
+    !
+  end subroutine build_Up_x_Uq_matrix
+  !
+  !*****************************************************************************************
+  !
+  function pretty_braket(w,j,n,l,lam,bk,Np,Nq)
+    !
+    ! INPUTs:
+    !        o) Np(opt), Nq(opt), w, j, n, l, lam: Quantum numbers
+    !        o) bk: one character = b (bra) or k (ket)
+    !
+    ! OUTPUT:
+    !        o) pretty_braket: character type
+    !
+    implicit none
+    !
+    integer, intent(in)         :: w,j,n,l,lam
+    integer,optional            :: Np, Nq
+    character(len=1),intent(in) :: bk
+    character(len=250)          :: pretty_braket, aux
+    !
+    if ( (bk /= "b")  .and. (bk /= "k") ) &
+         STOP "ERROR! pretty_braket: bk must be equal to b (bra) ot k (ket) !!! "
+    !
+    if ( bk == 'b' ) then
+       write(pretty_braket,'(A2)') "< "
+    else
+       write(pretty_braket,'(A2)') "| "
+    end if
+    !
+    if (present(Np)) then
+       write(aux,'(I10)') Np
+       pretty_braket=trim(pretty_braket) // " [Np=" // trim(adjustl(aux)) // "]"
+    endif
+    !
+    write(aux,'(I10)') w
+    pretty_braket=trim(pretty_braket) // " w=" // trim(adjustl(aux))
+    !
+    write(aux,'(I10)') j
+    pretty_braket=trim(pretty_braket) // " j=" // trim(adjustl(aux)) // ";"
+    !
+    if (present(Nq)) then
+       write(aux,'(I10)') Nq
+       pretty_braket=trim(pretty_braket) // " [Np=" // trim(adjustl(aux)) // "]"
+       aux=""
+    endif
+    !
+    write(aux,'(I10)') n
+    pretty_braket=trim(pretty_braket) // " n=" // trim(adjustl(aux))
+    !
+    write(aux,'(I10)') l
+    pretty_braket=trim(pretty_braket) // " l=" // trim(adjustl(aux)) // ";"
+    !
+    write(aux,'(I10)') lam
+    pretty_braket=trim(pretty_braket) // " lambda=" // trim(adjustl(aux))
+    !
+    if ( bk == 'b' ) then
+       pretty_braket=trim(pretty_braket) // " |"
+    else
+       pretty_braket=trim(pretty_braket) // " >"
+    endif
+    !
+  end function pretty_braket
   !
   !*****************************************************************************************
   !

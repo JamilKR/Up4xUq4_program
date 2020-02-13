@@ -131,7 +131,10 @@ Hamiltonian:
   \item Subroutine: \texttt{dimension\_po}
   \item Subroutine: \texttt{build\_basis\_po}
   \item Subroutine: \texttt{initialize\_position\_index}
-  \item Function: \texttt{build\_Qp\_x\_Qq\_0\_matrix}
+  \item Function: \texttt{RME\_Qp\_x\_Qq\_0}
+  \item Function: \texttt{RME\_Ip\_x\_SOq4}
+  \item Subroutine: \texttt{build\_Up\_x\_Uq\_matrix}
+  \item Function; \texttt{pretty\_braket}
   \end{itemize}
 \end{itemize}
 
@@ -304,6 +307,49 @@ Outputs:
     !\\
     ! This function is going to be of vital importance during the program's development\\
     !\\
-}
-   
+  }
+
+  \subsubsection{Building all matrices: \texttt{build\_Up\_x\_Uq\_matrix}}
+
+  This subroutine builds the matrices for the operators of $U_p(4)\times U_q(4)$ using
+  para/ortho basis without mixing different $\Lambda$.
+
+  
+  \vbox{\em
+    subroutine build\_Up\_x\_Uq\_matrix(basis,matrix,RME\_fun,iprint)\\
+    ! \\
+    ! This function build the para / ortho matrices using the given basis. \\
+    ! This procedure can be used to build Up4 x Uq4 operators' matrices.\\
+    !\\
+    ! INPUTs:\\
+    !        o) basis:   para/ortho basis\\
+    !        o) matrix:  square matriz len(basis) x len(basis)\\
+    !        o) RME\_fun: function with w1,j1,n1,l1,lam1,w2,j2,n2,l2,lam2 dependences.\\
+    !        o) iprint:  printing control\\
+    !\\
+    ! OUTPUT:\\
+    !        o) matrix\\
+    !\\
+    ! All position corresponding to lam1 /= lam2 will be ZERO! \\
+    !\\
+  }
+
+  The function \texttt{RME\_fun} must deppend on
+  $\left(\omega_1,J_1,n_1,L_1,\Lambda_1,\omega_2,J_2,n_2,L_2,\Lambda_2\right)$.
+
+  \subsubsection{Braket notation output: \texttt{pretty\_braket}}
+  
+  Useless gadget ... but very nice.
+
+  \vbox{\em
+    function pretty\_braket(w,j,n,l,lam,bk,Np,Nq) \\
+    ! \\
+    ! INPUTs:\\
+    !        o) Np(opt), Nq(opt), w, j, n, l, lam: Quantum numbers \\
+    !        o) bk: one character = b (bra) or k (ket) \\
+    !\\
+    ! OUTPUT: \\
+    !        o) pretty\_braket: character type \\
+    ! \\
+  }
 \end{document}
