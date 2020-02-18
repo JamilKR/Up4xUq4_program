@@ -10,7 +10,7 @@ program test_5
   integer:: dim_para(0:lambda_max),dim_ortho(0:lambda_max)!,ijk(0:lambda_max)
   integer,allocatable:: basis_para(:,:),basis_ortho(:,:)
   double precision, allocatable:: A(:,:), B(:,:)
-  integer:: i,j
+  !integer:: i,j
   Np=3
   Npval=3
   Nq=2

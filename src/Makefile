@@ -1,8 +1,17 @@
+
+SHELL = /bin/sh
+BIN   = ../bin/
+
+
 FC = gfortran
-FFLAGS = -g -Wall -O3 -fcheck=all -cpp
+#FFLAGS = -g -Wall -O3 -fcheck=all -cpp
+FFLAGS = -Wall -O3 -cpp -fopenmp
 
 MODLIB = -I/usr/local/lib/lapack95/lapack95_modules
 OPTLIB = -lblas -llapack /usr/local/lib/lapack95/lapack95.a
+
+BuckPgm_src = MOD_matfun.f90 MOD_Up4.f90 MOD_Uq4.f90 MOD_Up_x_Uq.f90  minuit-cern.f BuckProgram_fit.f90
+BuckPgm_obj = $(addsuffix .o, $(basename ${BuckPgm_src}))
 
 test_src = MOD_matfun.f90 MOD_Up4.f90 MOD_Uq4.f90 test.f90
 test_obj = $(addsuffix .o, $(basename ${test_src}))
@@ -23,10 +32,13 @@ test_6_src = MOD_matfun.f90 MOD_Up4.f90 MOD_Uq4.f90 MOD_Up_x_Uq.f90  test_6.f90
 test_6_obj = $(addsuffix .o, $(basename ${test_6_src}))
 
 
-%.o: %.f90 $(test_src) $(test_2_src) $(test_3_src) $(test_5_src) $(test_6_src)
-	$(FC) $(FFLAGS) $(MODLIB) -c -o $@ $<
+%.o: %.f90 
+	$(FC) $(FFLAGS) -c $(MODLIB) -o $@ $<
 
-all: help test test_2 test_3 test_4 test_5 test_6
+%.o: %.f
+	$(FC) -O3 -c  -o $@ $<
+
+all: help BuckProgram_fit #test test_2 test_3 test_4 test_5 test_6
 
 help:
 	@echo
@@ -35,23 +47,26 @@ help:
 	@echo   "\e[44mToo many expectations...!\e[0m"
 	@echo
 
+BuckProgram_fit: $(BuckPgm_obj)
+	$(FC) $(FFLAGS)  -o $(BIN)$@".out" $^ $(OPTLIB)	
+
 test: $(test_obj)
-	$(FC) $(FFLAGS) $(MODLIB) -o $@".out" $^ $(OPTLIB)
+	$(FC) $(FFLAGS)  -o $(BIN)$@".out" $^ $(OPTLIB)
 
 test_2: $(test_2_obj)
-	$(FC) $(FFLAGS) $(MODLIB) -o $@".out" $^ $(OPTLIB)
+	$(FC) $(FFLAGS)  -o $(BIN)$@".out" $^ $(OPTLIB)
 
 test_3: $(test_3_obj)
-	$(FC) $(FFLAGS) $(MODLIB) -o $@".out" $^ $(OPTLIB)
+	$(FC) $(FFLAGS)  -o $(BIN)$@".out" $^ $(OPTLIB)
 
 test_4: $(test_4_obj)
-	$(FC) $(FFLAGS) $(MODLIB) -o $@".out" $^ $(OPTLIB)
+	$(FC) $(FFLAGS)  -o $(BIN)$@".out" $^ $(OPTLIB)
 
 test_5: $(test_5_obj)
-	$(FC) $(FFLAGS) $(MODLIB) -o $@".out" $^ $(OPTLIB)
+	$(FC) $(FFLAGS)  -o $(BIN)$@".out" $^ $(OPTLIB)
 
 test_6: $(test_6_obj)
-	$(FC) $(FFLAGS) $(MODLIB) -o $@".out" $^ $(OPTLIB)
+	$(FC) $(FFLAGS)  -o $(BIN)$@".out" $^ $(OPTLIB)
 
 clean:
-	@rm -f *.o *.mod *.out *~
+	@rm -f *.o *.mod *.out *~ $(BIN)*.out

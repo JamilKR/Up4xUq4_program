@@ -19,7 +19,7 @@
 \tikzstyle{innerWhite} = [semithick, white,line width=1.4pt, shorten >= 4.5pt]
 
 \newcommand{\cas}[2]{
-  \mathcal{C}_{#1}\left[#2\right]
+  \hat{\mathcal{C}}_{#1}\left[#2\right]
 }
 \newcommand{\Abs}[1]{
   \left|#1\right|
@@ -45,7 +45,11 @@
   \node[draw,rectangle,fill=olive!80,right of=a] at (0,0)(c){$U_p(4)\;\times\;U_q(4)$ Module};
   \node[draw,rectangle,fill=green!20,right of=c]at(4,0)(b){$U_q(4)$ Module};
   \node[draw,rectangle,fill=blue!20,above of=c](d){Math Functions Module};
-  \node[draw,rectangle,fill=red!20,below of=c](e){Main Program};
+  \node[draw,rectangle,fill=red!20,below of=c]at(,-1.5)(e){Main Program};
+  \node[draw,rectangle,fill=yellow!20,right of=e]at(4,-1)(f){Lapack95};
+  \node[text, right of=c]at(1,-0.2)(g){};
+  \node[draw,rectangle,fill=yellow!20,below of=a]at(-3,-1.5)(h){minuit-cern};
+  \node[text, below of=c]at(-0.1,-1.5)(i){};
   
   \draw[vecArrow] (a) to (c);
   \draw[vecArrow] (b) to (c);
@@ -53,13 +57,17 @@
   \draw[vecArrow] (c) to (e);
   \draw[vecArrow] (d) -| (a);
   \draw[vecArrow] (d) -| (b);
-
+  \draw[vecArrow] (f) -| (g);
+  \draw[vecArrow] (h) to (i);
+  
   \draw[innerWhite] (a) to (c);
   \draw[innerWhite] (b) to (c);
   \draw[innerWhite] (d) to (c);
   \draw[innerWhite] (c) to (e);
   \draw[innerWhite] (d) -| (a);
   \draw[innerWhite] (d) -| (b);
+  \draw[innerWhite] (f) -| (g);
+  \draw[innerWhite] (h) to (i);
 \end{tikzpicture}
 
 \section{Math Functions Module $\rightarrow$ \texttt{MOD\_matfun.f90}}
@@ -124,7 +132,19 @@ Hamiltonian:
 \begin{itemize}
 \item Global definitions:
   \begin{itemize}
-    \item
+  \item \texttt{basis\_para(1:5, no of para-states)}: Integers. Para-states
+  \item \texttt{basis\_ortho(1:5, no of ortho-states)}: Integers. Ortho-states
+  \item \texttt{dim\_para(1:$\Lambda_{\text{max}}$)}: Integers. Para-dim blocks
+  \item \texttt{dim\_ortho(1:$\Lambda_{\text{max}}$)}: Integers. Ortho-dim blocks
+  \item \texttt{ijk\_para(1:$\Lambda_{\text{max}}$)}: Integers. Pseudo-pointer
+  \item \texttt{ijk\_ortho(1:$\Lambda_{\text{max}}$)}: Integers. Pseudo-pointer
+  \item Type \texttt{exp\_point}: \texttt{exp\_point\%ist}, \texttt{exp\_point\%i\_pos},\texttt{exp\_point\%fst},\texttt{exp\_point\%f\_pos}, \texttt{exp\_point\%energy} and \texttt{exp\_point\%intensity}
+  \item Type \texttt{matrix}: \texttt{matrix($\Lambda$)\%[SYM]}
+  \item \texttt{Ham(1:$\Lambda_{\text{max}}$)}: Type(\texttt{matrix}). Hamiltonian para/ortho matrices
+  \item \texttt{SOq4(1:$\Lambda_{\text{max}}$)}: Type(\texttt{matrix}). $\cas{2}{SO_q(4)}$ para/ortho matrices
+  \item \texttt{QpQq(1:$\Lambda_{\text{max}}$)}: Type(\texttt{matrix}). $\left[\hat{Q}_p^{(2)}\times\hat{Q}_q^{(2)}\right]^{(0)}$ para/ortho matrices
+  \item \texttt{QpQqW(1:$\Lambda_{\text{max}}$)}: Type(\texttt{matrix}). $\left[\hat{Q}_p^{(2)}\times\hat{Q}_q^{(2)}\right]^{(0)} \cas{2}{SO_p(4)} + c.c.$ para/ortho matrices
+  
   \end{itemize}
 \item Functions:
   \begin{itemize}
@@ -134,7 +154,15 @@ Hamiltonian:
   \item Function: \texttt{RME\_Qp\_x\_Qq\_0}
   \item Function: \texttt{RME\_Ip\_x\_SOq4}
   \item Subroutine: \texttt{build\_Up\_x\_Uq\_matrix}
-  \item Function; \texttt{pretty\_braket}
+  \item Function: \texttt{pretty\_braket}
+  \item Subroutine: \texttt{read\_expdat}
+  \item Function: \texttt{exp\_lines}
+  \item Function: \texttt{RME\_sop4}
+  \item Subroutine: \texttt{buils\_ham}
+  \item Function: \texttt{find\_pos}
+  \item Subroutine: \texttt{eigensystem}
+  \item Function: \texttt{assig\_state}
+  \item Function: \texttt{chi2} ToDo
   \end{itemize}
 \end{itemize}
 

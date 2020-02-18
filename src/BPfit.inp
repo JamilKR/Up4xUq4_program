@@ -1,0 +1,10 @@
+#
+# BuckProgram_fit input
+#
+&num Npval=34, Nqval=20, lambda_max=5, inp_exp="exp_T200_JCP.dat" /
+#
+&mol bet=-1081.67d0, gam=58.32, gam2=-0.035d0, kap=0.8d0 /
+#
+&cag a=179.0d0, b=8.44d0, c=-3.22d0, d=-10.0d0 /
+#
+&int Qpq=0.85d0, Qpqw=-0.027d0, v1=-1.05d0 /

@@ -3,12 +3,35 @@ module MOD_Up_x_Uq
   use MOD_matfun
   use MOD_Up4
   use MOD_Uq4
+  USE F95_LAPACK, ONLY: LA_SYEVR
   !
   implicit none
   !
-  integer:: total_dim
-  integer:: para_dim
-  integer:: ortho_dim
+  integer, allocatable:: basis_para(:,:),basis_ortho(:,:), dim_para(:), dim_ortho(:), &
+       ijk_para(:), ijk_ortho(:)
+  type exp_point
+     !
+     integer:: ist(1:5) ! initial state
+     integer:: i_pos    ! position in para/ortho basis
+     integer:: fst(1:5) ! final state
+     integer:: f_pos    ! fosition in para/ortho basis
+     double precision:: energy
+     double precision:: intensity
+     !
+  end type exp_point
+  !
+  type matrix
+     !
+     double precision,allocatable:: para(:,:) ! para-matrix
+     double precision,allocatable::ortho(:,:) ! ortho-matrix
+     !
+  end type matrix
+  ! matrices:
+  type(matrix), allocatable:: &
+       Ham(:)    , & ! Hamiltonian para and ortho
+       SOq4(:)   , & ! SOq(4) operator matrices para and ortho
+       QpQq(:)   , & ! Qp x Qq operator matrices para and ortho
+       QpQqW(:)    ! Qp x Qq SOp(4) matrices para and ortho
   !
 contains
   !
@@ -100,8 +123,8 @@ contains
     !        o) dim_ortho: partial dimensions of ortho-blocks
     !
     ! OUTPUTs:
-    !         o) basis_para (1:5,0:lambda_max): basis  para-blocks
-    !         o) basis_ortho(0:5,0:lambda_max): basis ortho-blocks
+    !         o) basis_para (1:5,1:total_para): basis  para-blocks
+    !         o) basis_ortho(1:5,1:total_ortho): basis ortho-blocks
     !
     implicit none
     !
@@ -312,7 +335,7 @@ contains
     ! Checking dimensions:
     !
     if ( (lbdim(1)/=1) .or. (ubdim(1)/=5) ) STOP "ERROR! build_Up_x_Uq_matrix: &
-         &5 quantum number are needed !!! "
+         &5 quantum numbers are needed !!! "
     !
     if ( (lmtx(1)/=lmtx(2)) .or. (umtx(1)/=umtx(2)) ) STOP "ERROR! build_Up_x_Uq_matrix: &
          &matrix must be a square matrix !!! "
@@ -406,6 +429,289 @@ contains
     endif
     !
   end function pretty_braket
+  !
+  !*****************************************************************************************
+  !
+  subroutine read_expdat(file_nm,data,dim,nt)
+    !
+    ! Read the input file.
+    ! Line style:
+    ! 0,0,2,0,0;  1,0,1,1,1;  3866.0;  0.47
+    !
+    implicit none
+    !
+    character(len=50), intent(in):: file_nm
+    integer,intent(in):: dim,nt
+    type(exp_point):: data(1:dim)
+    integer:: line
+    !
+    open(unit=nt,file=trim(file_nm),status='old',action='read')
+    !
+    do line=1,dim
+       !
+       read(nt,*) data(line)%ist(1),data(line)%ist(2),data(line)%ist(3), &
+            data(line)%ist(4),data(line)%ist(5), data(line)%fst(1),data(line)%fst(2), &
+            data(line)%fst(3),data(line)%fst(4),data(line)%fst(5),data(line)%energy, &
+            data(line)%intensity
+       data(line)%ist(1)=Npval-2*data(line)%ist(1)
+       data(line)%fst(1)=Npval-2*data(line)%fst(1)
+       !
+       if ( mod(data(line)%ist(2),2) == 0 ) then
+          !
+          data(line)%i_pos = find_pos( &
+               (/ data(line)%ist(1),data(line)%ist(2),data(line)%ist(3), &
+               data(line)%ist(4),data(line)%ist(5) /) , basis_para )
+          !
+          data(line)%f_pos = find_pos( &
+               (/ data(line)%fst(1),data(line)%fst(2),data(line)%fst(3), &
+               data(line)%fst(4),data(line)%fst(5) /) , basis_para )
+          !
+       else
+          !
+          data(line)%i_pos = find_pos( &
+               (/ data(line)%ist(1),data(line)%ist(2),data(line)%ist(3), &
+               data(line)%ist(4),data(line)%ist(5) /) , basis_ortho )
+          !
+          data(line)%f_pos = find_pos( &
+               (/ data(line)%fst(1),data(line)%fst(2),data(line)%fst(3), &
+               data(line)%fst(4),data(line)%fst(5) /) , basis_ortho )
+          !
+       endif
+       !
+    enddo
+    !
+    close(nt)
+    !
+  end subroutine read_expdat
+  !
+  !*****************************************************************************************
+  !
+  function exp_lines(file_nm,nt)
+    !
+    ! Return the number of lines of a file
+    !
+    implicit none
+    !
+    character(len=50),intent(in):: file_nm
+    integer,intent(in):: nt
+    integer:: exp_lines
+    !
+    open(unit=nt,file=trim(file_nm),status='old',action='read')
+    !
+    exp_lines=0
+    do
+       read(nt,*,end=12)
+       exp_lines=exp_lines+1
+    enddo
+    !
+12  close(nt)
+    !
+  end function exp_lines
+  !
+  !*****************************************************************************************
+  !
+  function RME_sop4(w1,j1,n1,l1,lam1,w2,j2,n2,l2,lam2)
+    !
+    ! RME_sop4 = diagonal !!!
+    ! RME_sop4 = w(w+2)
+    !
+    implicit none
+    !
+    integer,intent(in):: w1,j1,n1,l1,lam1, w2,j2,n2,l2,lam2
+    double precision  :: RME_sop4
+    !
+    if ( (w1==w2) .and. (j1==j2) .and. (n1==n2) .and. (l1==l2) .and. (lam1==lam2) ) then
+       !
+       RME_sop4 = dble( w1*(w1+2) )
+       !
+    else
+       !
+       RME_sop4 = 0.0d0
+       !
+    endif
+    !
+  end function RME_sop4
+  !
+  !*****************************************************************************************
+  !
+  subroutine build_ham(H,bet,gam,gam2,kap, a,b,c,d, Qpq, Qpqw, v1, basis)
+    !
+    !
+    !
+    implicit none
+    !
+    double precision, intent(in):: bet,gam,gam2,kap, a,b,c,d, Qpq, Qpqw, v1
+    integer,intent(in):: basis(:,:)
+    integer:: ldim(1:2), udim(1:2)
+    double precision,intent(inout):: H(:,:)
+    integer:: i
+    !
+    ldim = lbound(basis)
+    udim = ubound(basis)
+    !
+    if ( (ldim(1)/=1) .or. (udim(1)/=5) ) stop "ERROR! build_ham: 5 &
+         &quantum numbers are needed !!! "
+    !
+    h=0.0d0
+    !
+    do i=ldim(2),udim(2)
+       !
+       H(i,i)=H(i,i)+bet*RME_Casimir_SOp4(basis(1,i),basis(2,i),basis(1,i),basis(2,i)) + &
+            !
+            gam* RME_Casimir_SOp3(basis(1,i),basis(2,i),basis(1,i),basis(2,i)) + &
+            !
+            gam2*(RME_Casimir_SOp3(basis(1,i),basis(2,i),basis(1,i),basis(2,i))**2.0d0) + &
+            !
+            kap*RME_Casimir_SOp4(basis(1,i),basis(2,i),basis(1,i),basis(2,i))* &
+            RME_Casimir_SOp3(basis(1,i),basis(2,i),basis(1,i),basis(2,i)) + &
+            !
+            !
+            a*RME_Casimir_uq3(basis(3,i),basis(4,i),basis(3,i),basis(4,i)) + &
+            !
+            b*(RME_Casimir_uq3(basis(3,i),basis(4,i),basis(3,i),basis(4,i))**2.0d0) + &
+            !
+            c*RME_Casimir_SOq3(basis(3,i),basis(4,i),basis(3,i),basis(4,i)) + &
+            !
+            !
+            v1*RME_Casimir_uq3(basis(3,i),basis(4,i),basis(3,i),basis(4,i))* &
+            RME_Casimir_SOp4(basis(1,i),basis(2,i),basis(1,i),basis(2,i))
+       !
+    enddo
+    !
+    if ( mod(basis(2,1),2) == 0 ) then! para case
+       !
+       h = h + d*SOq4(basis(5,1))%para + Qpq*QpQq(basis(5,1))%para + &
+            Qpqw*QpQqW(basis(5,1))%para
+       !
+    else
+       !
+       h = h + d*SOq4(basis(5,1))%ortho + Qpq*QpQq(basis(5,1))%ortho + &
+            QpQW*qpqqw(basis(5,1))%ortho
+       !
+    endif
+    !
+  end subroutine build_ham
+  !
+  !*****************************************************************************************
+  !
+  function find_pos(state,basis,iprint)
+    !
+    ! Find the position of /state/ in the /basis/ given
+    !
+    integer,intent(in):: state(1:5)
+    integer,intent(in):: basis(:,:)
+    integer,optional::iprint
+    integer:: ldim(1:2), udim(1:2), i
+    integer:: find_pos
+    !
+    ldim=lbound(basis)
+    udim=ubound(basis)
+    !
+    if ( (ldim(1)/=1) .or. (udim(1)/=5) ) stop "ERROR! build_ham: 5 &
+         &quantum numbers are needed !!! "
+    !
+    find_pos = 1
+    !
+    do while ( (state(1)/=basis(1,find_pos)) .or. (state(2)/=basis(2,find_pos)) .or. &
+         (state(3)/=basis(3,find_pos)) .or. (state(4)/=basis(4,find_pos)) .or. &
+         (state(5)/=basis(5,find_pos)) .and. (find_pos.le.udim(2)) )
+       !
+       find_pos=find_pos+1
+       !
+    enddo
+    if (present(iprint)) then
+       !
+       write(*,'(A,A,I8)')trim(pretty_braket(state(1),state(2),state(3), &
+            state(4),state(5),'k')), " position: ", find_pos
+       !
+    endif
+    !
+  end function find_pos
+  !
+  !*****************************************************************************************
+  !
+  subroutine eigensystem(Ham,paraE,orthoE,lambda_max, &
+       bet,gam,gam2,kap, a,b,c,d, Qpq, Qpqw, v1)
+    !
+    !
+    !
+    implicit none
+    !
+    type(matrix),intent(inout):: Ham(1:lambda_max)
+    double precision, intent(inout)::  paraE(*), orthoE(*)
+    integer,intent(in):: lambda_max
+    double precision, intent(in):: bet,gam,gam2,kap, a,b,c,d, Qpq, Qpqw, v1
+    integer::i,j,k, state(1:5)
+    double precision, allocatable:: aux(:)
+    !
+    do i=0,lambda_max
+       !
+       ! Build the Hamiltonians
+       call build_ham(Ham(i)%para,bet,gam,gam2,kap, a,b,c,d, Qpq, Qpqw, v1,basis_para( &
+            1:5,ijk_para(i):ijk_para(i)+dim_para(i)-1) )
+       !
+       call build_ham(Ham(i)%ortho,bet,gam,gam2,kap, a,b,c,d, Qpq, Qpqw, v1,basis_ortho( &
+            1:5,ijk_ortho(i):ijk_ortho(i)+dim_ortho(i)-1) )
+       !
+       ! Diagonalize - para
+       allocate(aux(1:dim_para(i)))
+       call la_syevr(A=Ham(i)%para,W=aux,JOBZ='V',UPLO='U')
+       do j =ijk_para(i),ijk_para(i)+dim_para(i)-1
+          ! (:,fix_col)
+          state = assig_state(Ham(i)%para(:,j),basis_para( &
+               1:5,ijk_para(i):ijk_para(i)+dim_para(i)-1) )
+          k = find_pos(state,basis_para)
+          paraE(k) = aux(j)
+       enddo
+       deallocate(aux)
+       !
+       ! Diagonalize - ortho
+       allocate(aux(1:dim_ortho(i)))
+       call la_syevr(A=Ham(i)%ortho,W=aux,JOBZ='V',UPLO='U')
+       do j =ijk_ortho(i),ijk_ortho(i)+dim_ortho(i)-1
+          ! (:,fix_col)
+          state = assig_state(Ham(i)%ortho(:,j),basis_ortho( &
+               1:5,ijk_ortho(i):ijk_ortho(i)+dim_ortho(i)-1) )
+          k = find_pos(state,basis_ortho)
+          orthoE(k) = aux(j)
+       enddo
+       deallocate(aux)
+       !
+       !
+    enddo
+    !
+  end subroutine eigensystem
+  !
+  !*****************************************************************************************
+  !
+  function assig_state(WF,basis)
+    !
+    ! Give the WF components respect a basis and a state is asignated
+    !
+    implicit none
+    !
+    double precision, intent(in)::WF(:)
+    integer,intent(in)::basis(:,:)
+    integer:: assig_state(1:5), pos(1)
+    !
+    pos = maxloc( WF*WF ) ! position of the maximun square component
+    assig_state(:) = basis(:,pos(1))
+    !
+  end function assig_state
+  !
+  !*****************************************************************************************
+  !
+  function chi2(params)
+    !
+    !
+    !
+    implicit none
+    !
+    double precision:: chi2
+    !
+    chi2 = 0.0d0
+    !
+  end function chi2
   !
   !*****************************************************************************************
   !

@@ -2,4 +2,6 @@
    Recursive vs normal function?
    Integer vs double precision?
 
+2. Improve reap_expdat subroutine of MOD_Up_x_Uq module
 
+3. Improve QpQqW matrices. Too slow !!! [IMPORTANT]
