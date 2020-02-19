@@ -9,10 +9,8 @@ program BuckProgram
   implicit none
   !
   character(len=50):: input, form, inp_exp !input namelist, format string, input exp trans
-  integer::lambda_max
   integer:: i,j,k ! Loops
-  type(exp_point),allocatable:: exp_data(:) ! experimental data structures
-  integer:: total_exp ! number of experimental data
+  integer:: ird=5, iwr =6, isav=7
   ! Hamiltonian parameters:
   double precision:: &
        ! H molecule:
@@ -31,11 +29,13 @@ program BuckProgram
        v1       !C_1[Uq(3)]C_2[SOp(4)]
   !
   double precision,allocatable:: aux(:,:) ! Auxiliary matrix!!
+  character(len=50) :: fit_par ! Parameters to be fixed
   !
   NAMELIST /num/ Npval, Nqval, lambda_max, inp_exp
   NAMELIST /mol/ bet, gam, gam2, kap
   NAMELIST /cag/ a, b, c, d
   NAMELIST /int/ Qpq, Qpqw, v1
+  NAMELIST /fit/ Fit_par
   !
   write(*,'(A)') "Reading input file..."
   read(*,*) input
@@ -45,6 +45,9 @@ program BuckProgram
   read(11,mol)
   read(11,cag)
   read(11,int)
+  read(11,fit)
+  !
+  close(11)
   !
   allocate(dim_para(0:lambda_max), dim_ortho(0:lambda_max), &
        ijk_para(0:lambda_max),ijk_ortho(0:lambda_max))
@@ -103,18 +106,20 @@ program BuckProgram
      call build_Up_x_Uq_matrix(basis_ortho(1:5,ijk_ortho(i):ijk_ortho(i)+dim_ortho(i)-1), &
           QpQq(i)%ortho,RME_Qp_x_Qq_0)
      !
-     ! The next commented lines are correct but spend a lot of time
-     allocate(aux(1:dim_para(i),1:dim_para(i)))
-     call build_Up_x_Uq_matrix(basis_para(1:5,ijk_para(i):ijk_para(i)+dim_para(i)-1), &
-          aux, RME_Ip_x_SOq4) ! SOp4 diag-matrix para base
-     QpQqW(i)%para=0.5d0*( matmul(QpQq(i)%para,aux) + matmul(aux,QpQq(i)%para) )
-     deallocate(aux)
-     !
-     allocate(aux(1:dim_ortho(i),1:dim_ortho(i)))
-     call build_Up_x_Uq_matrix(basis_ortho(1:5,ijk_ortho(i):ijk_ortho(i)+dim_ortho(i)-1),&
-          aux, RME_Ip_x_SOq4) ! SOp4 diag-matrix ortho base
-     QpQqW(i)%ortho=0.5d0*( matmul(QpQq(i)%ortho,aux) + matmul(aux,QpQq(i)%ortho) )
-     deallocate(aux)     
+     ! Uncomment !!!! 
+     ! allocate(aux(1:dim_para(i),1:dim_para(i)))
+     ! call build_Up_x_Uq_matrix(basis_para(1:5,ijk_para(i):ijk_para(i)+dim_para(i)-1), &
+     !      aux, RME_Ip_x_SOq4) ! SOp4 diag-matrix para base
+     ! QpQqW(i)%para=0.5d0*( matmul(QpQq(i)%para,aux) + matmul(aux,QpQq(i)%para) )
+     ! deallocate(aux)
+     ! !
+     ! allocate(aux(1:dim_ortho(i),1:dim_ortho(i)))
+     ! call build_Up_x_Uq_matrix(basis_ortho(1:5,ijk_ortho(i):ijk_ortho(i)+dim_ortho(i)-1),&
+     !      aux, RME_Ip_x_SOq4) ! SOp4 diag-matrix ortho base
+     ! QpQqW(i)%ortho=0.5d0*( matmul(QpQq(i)%ortho,aux) + matmul(aux,QpQq(i)%ortho) )
+     ! deallocate(aux)
+     QpQqW(i)%para=0.0d0 ! <----
+     QpQqW(i)%ortho=0.0d0 !<----
      !
 #ifdef _OPENMP
      write(*,'(T5,A,I3,A,I3)') "Computed matrices for lambda =", i," on thread ", &
@@ -124,5 +129,41 @@ program BuckProgram
 #endif
   enddo
   !$OMP END PARALLEL DO
+  !
+  open(unit=12,file='minuit_input.inp',status='replace')
+  inquire(12)
+  !
+  write(12,'(A)') "SET TITLE"
+  write(12,'(A)') "'Minuit minimization'"
+  write(12,'(A)') "PARAMETERS"
+  write(12,'(A,D20.10,A)') "1    'bet '",  bet,   "         0.1D-02"
+  write(12,'(A,D20.10,A)') "2    'gam '",  gam,   "         0.1D-02"
+  write(12,'(A,D20.10,A)') "3    'gam2 '", gam2,  "         0.1D-02"
+  write(12,'(A,D20.10,A)') "4    'kap '",  kap,   "         0.1D-02"
+  write(12,'(A,D20.10,A)') "5    'a '",    a,     "         0.1D-02"
+  write(12,'(A,D20.10,A)') "6    'b '",    b,     "         0.1D-02"
+  write(12,'(A,D20.10,A)') "7    'c '",    c,     "         0.1D-02"
+  write(12,'(A,D20.10,A)') "8    'd '",    d,     "         0.1D-02"
+  write(12,'(A,D20.10,A)') "9    'Qpq '",  Qpq,   "         0.1D-02"
+  write(12,'(A,D20.10,A)') "10   'Qpqw '", Qpqw,  "         0.1D-02"
+  write(12,'(A,D20.10,A)') "11   'v1 '",   v1,    "         0.1D-02"
+  !
+  write(12,*)
+  write(12,'(A)') adjustl(fit_par)
+  write(12,'(A)') "set stra 2"
+  write(12,'(A)') "minimize 10000"
+  write(12,'(A)') "call 3"
+  write(12,'(A)') "exit"
+  write(12,*)
+  write(12,*)
+  !
+  close(12)
+  !
+  write(*,'(/,A)') "Calling minuit ..."
+  !
+  !params = (/ bet, gam, gam2, kap, a, b, c, d, Qpq, Qpqw, v1 /)
+  open(unit=ird,file='minuit_input.inp',status='old')
+  call mintio(ird,iwr,isav) ! units read, write and save
+  call minuit(FCN,chi2)
   !
 end program BuckProgram

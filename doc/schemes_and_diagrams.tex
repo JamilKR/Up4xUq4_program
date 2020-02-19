@@ -47,9 +47,9 @@
   \node[draw,rectangle,fill=blue!20,above of=c](d){Math Functions Module};
   \node[draw,rectangle,fill=red!20,below of=c]at(,-1.5)(e){Main Program};
   \node[draw,rectangle,fill=yellow!20,right of=e]at(4,-1)(f){Lapack95};
-  \node[text, right of=c]at(1,-0.2)(g){};
+  \node[draw=none,right of=c]at(1,-0.2)(g){};
   \node[draw,rectangle,fill=yellow!20,below of=a]at(-3,-1.5)(h){minuit-cern};
-  \node[text, below of=c]at(-0.1,-1.5)(i){};
+  \node[draw=none,below of=c]at(-0.1,-1.5)(i){};
   
   \draw[vecArrow] (a) to (c);
   \draw[vecArrow] (b) to (c);
@@ -138,7 +138,10 @@ Hamiltonian:
   \item \texttt{dim\_ortho(1:$\Lambda_{\text{max}}$)}: Integers. Ortho-dim blocks
   \item \texttt{ijk\_para(1:$\Lambda_{\text{max}}$)}: Integers. Pseudo-pointer
   \item \texttt{ijk\_ortho(1:$\Lambda_{\text{max}}$)}: Integers. Pseudo-pointer
+  \item \texttt{lambda\_max}: Integer. Maximum value of $\Lambda$
   \item Type \texttt{exp\_point}: \texttt{exp\_point\%ist}, \texttt{exp\_point\%i\_pos},\texttt{exp\_point\%fst},\texttt{exp\_point\%f\_pos}, \texttt{exp\_point\%energy} and \texttt{exp\_point\%intensity}
+  \item \texttt{total\_exp}: Integer. Number of experimental data.
+  \item \texttt{exp\_data}: Type(\texttt{exp\_point})
   \item Type \texttt{matrix}: \texttt{matrix($\Lambda$)\%[SYM]}
   \item \texttt{Ham(1:$\Lambda_{\text{max}}$)}: Type(\texttt{matrix}). Hamiltonian para/ortho matrices
   \item \texttt{SOq4(1:$\Lambda_{\text{max}}$)}: Type(\texttt{matrix}). $\cas{2}{SO_q(4)}$ para/ortho matrices
@@ -162,7 +165,8 @@ Hamiltonian:
   \item Function: \texttt{find\_pos}
   \item Subroutine: \texttt{eigensystem}
   \item Function: \texttt{assig\_state}
-  \item Function: \texttt{chi2} ToDo
+  \item Function: \texttt{chi2}
+  \item Function: \texttt{FCN}
   \end{itemize}
 \end{itemize}
 

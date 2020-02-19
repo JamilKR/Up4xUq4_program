@@ -1,10 +1,26 @@
 #
 # BuckProgram_fit input
 #
-&num Npval=34, Nqval=20, lambda_max=5, inp_exp="exp_T200_JCP.dat" /
+&num Npval=34, Nqval=5, lambda_max=5, inp_exp="exp_T200_JCP.dat" /
 #
-&mol bet=-1081.67d0, gam=58.32, gam2=-0.035d0, kap=0.8d0 /
+&mol bet=-1081.67d0, gam=58.32d0, gam2=-0.035d0, kap=0.8d0 /
 #
 &cag a=179.0d0, b=8.44d0, c=-3.22d0, d=-10.0d0 /
 #
 &int Qpq=0.85d0, Qpqw=-0.027d0, v1=-1.05d0 /
+#
+&fit Fit_par = "fix " /
+#
+# bet ----> 1
+# gam ----> 2
+# gam2 ---> 3
+# kap ----> 4
+#
+# a ------> 5
+# b ------> 6
+# c ------> 7
+# d ------> 8
+#
+# Qpq ----> 9
+# Qpqw ---> 10
+# v1 -----> 11

@@ -9,6 +9,7 @@ module MOD_Up_x_Uq
   !
   integer, allocatable:: basis_para(:,:),basis_ortho(:,:), dim_para(:), dim_ortho(:), &
        ijk_para(:), ijk_ortho(:)
+  integer::lambda_max
   type exp_point
      !
      integer:: ist(1:5) ! initial state
@@ -19,6 +20,8 @@ module MOD_Up_x_Uq
      double precision:: intensity
      !
   end type exp_point
+  integer:: total_exp ! number of experimental data
+  type(exp_point),allocatable:: exp_data(:) ! experimental data structures
   !
   type matrix
      !
@@ -552,7 +555,7 @@ contains
     if ( (ldim(1)/=1) .or. (udim(1)/=5) ) stop "ERROR! build_ham: 5 &
          &quantum numbers are needed !!! "
     !
-    h=0.0d0
+    H=0.0d0
     !
     do i=ldim(2),udim(2)
        !
@@ -630,19 +633,20 @@ contains
   !
   !*****************************************************************************************
   !
-  subroutine eigensystem(Ham,paraE,orthoE,lambda_max, &
+  subroutine eigensystem(paraE,orthoE,lambda_max, &
        bet,gam,gam2,kap, a,b,c,d, Qpq, Qpqw, v1)
     !
     !
     !
     implicit none
     !
-    type(matrix),intent(inout):: Ham(1:lambda_max)
-    double precision, intent(inout)::  paraE(*), orthoE(*)
+    !type(matrix),intent(inout):: Ham(1:lambda_max)
+    double precision, intent(inout)::  paraE(1:sum(dim_para)), orthoE(1:sum(dim_ortho))
     integer,intent(in):: lambda_max
     double precision, intent(in):: bet,gam,gam2,kap, a,b,c,d, Qpq, Qpqw, v1
     integer::i,j,k, state(1:5)
     double precision, allocatable:: aux(:)
+    double precision:: ZPE
     !
     do i=0,lambda_max
        !
@@ -656,11 +660,19 @@ contains
        ! Diagonalize - para
        allocate(aux(1:dim_para(i)))
        call la_syevr(A=Ham(i)%para,W=aux,JOBZ='V',UPLO='U')
-       do j =ijk_para(i),ijk_para(i)+dim_para(i)-1
+       do j =1,dim_para(i)
           ! (:,fix_col)
           state = assig_state(Ham(i)%para(:,j),basis_para( &
                1:5,ijk_para(i):ijk_para(i)+dim_para(i)-1) )
           k = find_pos(state,basis_para)
+          if ( j .gt. dim_para(i) ) then
+             print *, j, dim_para(i)
+             write(*,*) trim(pretty_braket(state(1),state(2),state(3),state(4),state(5),'k'))
+             write(*,*) "position: ", k, &
+                  trim(pretty_braket(basis_para(1,k),basis_para(2,k),basis_para(3,k),basis_para(4,k),basis_para(5,k),'k'))
+             write(*,*) "j=",ijk_para(i),",...,",ijk_para(i)+dim_para(i)-1
+             stop
+          endif
           paraE(k) = aux(j)
        enddo
        deallocate(aux)
@@ -668,7 +680,7 @@ contains
        ! Diagonalize - ortho
        allocate(aux(1:dim_ortho(i)))
        call la_syevr(A=Ham(i)%ortho,W=aux,JOBZ='V',UPLO='U')
-       do j =ijk_ortho(i),ijk_ortho(i)+dim_ortho(i)-1
+       do j =1,dim_ortho(i)
           ! (:,fix_col)
           state = assig_state(Ham(i)%ortho(:,j),basis_ortho( &
                1:5,ijk_ortho(i):ijk_ortho(i)+dim_ortho(i)-1) )
@@ -679,6 +691,10 @@ contains
        !
        !
     enddo
+    !
+    ZPE = minval(paraE)
+    paraE = paraE - ZPE
+    orthoE = orthoE - ZPE
     !
   end subroutine eigensystem
   !
@@ -703,15 +719,73 @@ contains
   !
   function chi2(params)
     !
+    ! params(1) ---> bet
+    ! params(2) ---> gam
+    ! params(3) ---> gam2
+    ! params(4) ---> kap
     !
+    ! params(5) ---> a
+    ! params(6) ---> b
+    ! params(7) ---> c
+    ! params(8) ---> d
+    !
+    ! params(9) ---> Qpq
+    ! params(10) --> QpqW
+    ! params(11) --> v1
     !
     implicit none
     !
-    double precision:: chi2
+    double precision,intent(in):: params(1:11)
+    double precision:: chi2,aux
+    double precision:: paraE(1:sum(dim_para)), orthoE(1:sum(dim_ortho))
+    integer:: i
     !
     chi2 = 0.0d0
     !
+    call eigensystem( paraE,orthoE,lambda_max, &
+         params(1), params(2), params(3), params(4), &
+         params(5), params(6), params(7), params(8), &
+         params(9), params(10), params(11) )
+    !
+    ! Counpute chi2
+    do i=1,total_exp
+       !
+       aux=0.0d0
+       !
+       if ( mod(exp_data(i)%ist(2),2) == 0 ) then ! para-state
+          !
+          aux = exp_data(i)%energy - (paraE(exp_data(i)%f_pos) - paraE(exp_data(i)%i_pos))
+          !
+       else !ortho-state
+          !
+          aux = exp_data(i)%energy - (orthoE(exp_data(i)%f_pos) - orthoE(exp_data(i)%i_pos))
+          !
+       endif
+       !
+       chi2 = chi2 + aux*aux
+       !
+    enddo
+    !
   end function chi2
+  !
+  !*****************************************************************************************
+  !
+  subroutine FCN(npar,grad,fval,xval,iflag,chi2)
+    !
+    ! Minuit function
+    !
+    implicit none
+    !
+    double precision:: grad(*), xval(*), fval
+    integer:: iflag, npar
+    double precision, external:: chi2
+    !
+    fval=chi2(xval)
+    !
+    write(*,31) fval, sqrt(fval/dble(total_exp-npar)), sqrt(fval/dble(total_exp))
+31  format('CHI2 =',F17.2,', RMS = ', F14.4, ', SIGMA = ', F14.4)
+    !
+  end subroutine FCN
   !
   !*****************************************************************************************
   !
