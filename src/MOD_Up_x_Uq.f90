@@ -457,12 +457,21 @@ contains
     !
     do line=1,dim
        !
+#ifdef __INTEL_COMPILER
+       read(nt,123) data(line)%ist(1),data(line)%ist(2),data(line)%ist(3), &
+            data(line)%ist(4),data(line)%ist(5), data(line)%fst(1),data(line)%fst(2), &
+            data(line)%fst(3),data(line)%fst(4),data(line)%fst(5),data(line)%energy, &
+            data(line)%intensity
+       data(line)%ist(1)=Npval-2*data(line)%ist(1)
+       data(line)%fst(1)=Npval-2*data(line)%fst(1)
+#else
        read(nt,*) data(line)%ist(1),data(line)%ist(2),data(line)%ist(3), &
             data(line)%ist(4),data(line)%ist(5), data(line)%fst(1),data(line)%fst(2), &
             data(line)%fst(3),data(line)%fst(4),data(line)%fst(5),data(line)%energy, &
             data(line)%intensity
        data(line)%ist(1)=Npval-2*data(line)%ist(1)
        data(line)%fst(1)=Npval-2*data(line)%fst(1)
+#endif
        !
        if ( mod(data(line)%ist(2),2) == 0 ) then
           !
@@ -487,6 +496,11 @@ contains
        endif
        !
     enddo
+    !
+    !123 format(2(4(I1,','),I1,';  '),F6.1,';  ',4.2)
+#ifdef __INTEL_COMPILER
+123 format(2(5(I1,A1),'  '),F6.1,2A1,'  ',F4.2)
+#endif
     !
     close(nt)
     !
@@ -553,7 +567,6 @@ contains
     integer:: ldim(1:2), udim(1:2)
     double precision,intent(inout):: H(:,:)
     integer:: i
-    integer:: w,j,n,l,lam
     !
     ldim = lbound(basis)
     udim = ubound(basis)
@@ -610,7 +623,7 @@ contains
     integer,intent(in):: state(1:5)
     integer,intent(in):: basis(:,:)
     integer,optional::iprint
-    integer:: ldim(1:2), udim(1:2), i
+    integer:: ldim(1:2), udim(1:2)
     integer:: find_pos
     !
     ldim=lbound(basis)
