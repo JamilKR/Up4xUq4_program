@@ -3,8 +3,12 @@ module MOD_Up_x_Uq
   use MOD_matfun
   use MOD_Up4
   use MOD_Uq4
+#ifdef __GFORTRAN__
   !Lapack95
   USE F95_LAPACK, ONLY: LA_SYEVR
+#elif defined __INTEL_COMPILER
+  USE LAPACK95,ONLY: SYEVR
+#endif
   !
   implicit none
   !
@@ -650,6 +654,11 @@ contains
     double precision, allocatable:: aux(:)
     double precision:: ZPE
     !
+#ifdef __INTEL_COMPILER
+    double precision, allocatable:: vectors(:,:)
+    call mkl_set_dynamic(0)
+#endif
+    !
     do i=0,lambda_max
        !
        ! Build the Hamiltonians
@@ -661,27 +670,35 @@ contains
        !
        ! Diagonalize - para
        allocate(aux(1:dim_para(i)))
+       !
+#ifdef __GFORTRAN__
        call la_syevr(A=Ham(i)%para,W=aux,JOBZ='V',UPLO='U')
+#elif defined __INTEL_COMPILER
+       allocate(vectors(1:dim_para(i),1:dim_para(i)))
+       call syevr(A=Ham(i)%para,W=aux,UPLO='U',Z=vectors)
+       Ham(i)%para=vectors
+       deallocate(vectors)
+#endif
        do j =1,dim_para(i)
           ! (:,fix_col)
           state = assig_state(Ham(i)%para(:,j),basis_para( &
                1:5,ijk_para(i):ijk_para(i)+dim_para(i)-1) )
           k = find_pos(state,basis_para)
-          if ( j .gt. dim_para(i) ) then
-             print *, j, dim_para(i)
-             write(*,*) trim(pretty_braket(state(1),state(2),state(3),state(4),state(5),'k'))
-             write(*,*) "position: ", k, &
-                  trim(pretty_braket(basis_para(1,k),basis_para(2,k),basis_para(3,k),basis_para(4,k),basis_para(5,k),'k'))
-             write(*,*) "j=",ijk_para(i),",...,",ijk_para(i)+dim_para(i)-1
-             stop
-          endif
           paraE(k) = aux(j)
        enddo
        deallocate(aux)
        !
        ! Diagonalize - ortho
        allocate(aux(1:dim_ortho(i)))
+       !
+#ifdef __GFORTRAN__
        call la_syevr(A=Ham(i)%ortho,W=aux,JOBZ='V',UPLO='U')
+#elif defined __INTEL_COMPILER
+       allocate(vectors(1:dim_ortho(i),1:dim_ortho(i)))
+       call syevr(A=Ham(i)%ortho,W=aux,UPLO='U',Z=vectors)
+       Ham(i)%ortho=vectors
+       deallocate(vectors)
+#endif
        do j =1,dim_ortho(i)
           ! (:,fix_col)
           state = assig_state(Ham(i)%ortho(:,j),basis_ortho( &
