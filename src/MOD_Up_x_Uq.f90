@@ -499,7 +499,7 @@ contains
     !
     !123 format(2(4(I1,','),I1,';  '),F6.1,';  ',4.2)
 #ifdef __INTEL_COMPILER
-123 format(2(5(I1,A1),'  '),F6.1,2A1,'  ',F4.2)
+123 format(2(5(I1,A1),'  '),F6.1,A1,'  ',F4.2)
 #endif
     !
     close(nt)
