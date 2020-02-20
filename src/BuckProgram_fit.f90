@@ -106,20 +106,18 @@ program BuckProgram
      call build_Up_x_Uq_matrix(basis_ortho(1:5,ijk_ortho(i):ijk_ortho(i)+dim_ortho(i)-1), &
           QpQq(i)%ortho,RME_Qp_x_Qq_0)
      !
-     ! Uncomment !!!! 
-     ! allocate(aux(1:dim_para(i),1:dim_para(i)))
-     ! call build_Up_x_Uq_matrix(basis_para(1:5,ijk_para(i):ijk_para(i)+dim_para(i)-1), &
-     !      aux, RME_Ip_x_SOq4) ! SOp4 diag-matrix para base
-     ! QpQqW(i)%para=0.5d0*( matmul(QpQq(i)%para,aux) + matmul(aux,QpQq(i)%para) )
-     ! deallocate(aux)
-     ! !
-     ! allocate(aux(1:dim_ortho(i),1:dim_ortho(i)))
-     ! call build_Up_x_Uq_matrix(basis_ortho(1:5,ijk_ortho(i):ijk_ortho(i)+dim_ortho(i)-1),&
-     !      aux, RME_Ip_x_SOq4) ! SOp4 diag-matrix ortho base
-     ! QpQqW(i)%ortho=0.5d0*( matmul(QpQq(i)%ortho,aux) + matmul(aux,QpQq(i)%ortho) )
-     ! deallocate(aux)
-     QpQqW(i)%para=0.0d0 ! <----
-     QpQqW(i)%ortho=0.0d0 !<----
+     Uncomment !!!! 
+     allocate(aux(1:dim_para(i),1:dim_para(i)))
+     call build_Up_x_Uq_matrix(basis_para(1:5,ijk_para(i):ijk_para(i)+dim_para(i)-1), &
+          aux, RME_Ip_x_SOq4) ! SOp4 diag-matrix para base
+     QpQqW(i)%para=0.5d0*( matmul(QpQq(i)%para,aux) + matmul(aux,QpQq(i)%para) )
+     deallocate(aux)
+     !
+     allocate(aux(1:dim_ortho(i),1:dim_ortho(i)))
+     call build_Up_x_Uq_matrix(basis_ortho(1:5,ijk_ortho(i):ijk_ortho(i)+dim_ortho(i)-1),&
+          aux, RME_Ip_x_SOq4) ! SOp4 diag-matrix ortho base
+     QpQqW(i)%ortho=0.5d0*( matmul(QpQq(i)%ortho,aux) + matmul(aux,QpQq(i)%ortho) )
+     deallocate(aux)
      !
 #ifdef _OPENMP
      write(*,'(T5,A,I3,A,I3)') "Computed matrices for lambda =", i," on thread ", &
@@ -165,5 +163,6 @@ program BuckProgram
   open(unit=ird,file='minuit_input.inp',status='old')
   call mintio(ird,iwr,isav) ! units read, write and save
   call minuit(FCN,chi2)
+  !
   !
 end program BuckProgram

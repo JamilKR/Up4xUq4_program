@@ -548,6 +548,7 @@ contains
     integer:: ldim(1:2), udim(1:2)
     double precision,intent(inout):: H(:,:)
     integer:: i
+    integer:: w,j,n,l,lam
     !
     ldim = lbound(basis)
     udim = ubound(basis)
@@ -583,12 +584,12 @@ contains
     !
     if ( mod(basis(2,1),2) == 0 ) then! para case
        !
-       h = h + d*SOq4(basis(5,1))%para + Qpq*QpQq(basis(5,1))%para + &
+       H = H + d*SOq4(basis(5,1))%para + Qpq*QpQq(basis(5,1))%para + &
             Qpqw*QpQqW(basis(5,1))%para
        !
     else
        !
-       h = h + d*SOq4(basis(5,1))%ortho + Qpq*QpQq(basis(5,1))%ortho + &
+       H = H + d*SOq4(basis(5,1))%ortho + Qpq*QpQq(basis(5,1))%ortho + &
             QpQW*qpqqw(basis(5,1))%ortho
        !
     endif
@@ -739,6 +740,8 @@ contains
     double precision:: chi2,aux
     double precision:: paraE(1:sum(dim_para)), orthoE(1:sum(dim_ortho))
     integer:: i
+    integer::miflag
+    common/minuit_iflag/miflag
     !
     chi2 = 0.0d0
     !
@@ -766,6 +769,53 @@ contains
        !
     enddo
     !
+    if (miflag == 3) then
+       !
+       write(*,'(/,A/)') "Residuals: exp - calc"
+       do i=1,total_exp
+          !
+          if ( mod(exp_data(i)%ist(2),2) == 0 ) then ! para-state
+             !
+             write(*,'(A,F7.3)') " Para:"// trim(pretty_braket(exp_data(i)%ist(1), &
+                  exp_data(i)%ist(2),exp_data(i)%ist(3),exp_data(i)%ist(4), &
+                  exp_data(i)%ist(5),'k'))//' ---> '// trim(pretty_braket( &
+                  exp_data(i)%fst(1),exp_data(i)%fst(2),exp_data(i)%fst(3), &
+                  exp_data(i)%fst(4),exp_data(i)%fst(5),'k'))// ' : ', &
+                  exp_data(i)%energy - (paraE(exp_data(i)%f_pos) - &
+                  paraE(exp_data(i)%i_pos))
+             !
+          else !ortho-state
+             !
+             write(*,'(A,F7.3)') "Ortho:"// trim(pretty_braket(exp_data(i)%ist(1), &
+                  exp_data(i)%ist(2),exp_data(i)%ist(3),exp_data(i)%ist(4), &
+                  exp_data(i)%ist(5),'k')) //' ---> '// trim(pretty_braket( &
+                  exp_data(i)%fst(1),exp_data(i)%fst(2),exp_data(i)%fst(3), &
+                  exp_data(i)%fst(4),exp_data(i)%fst(5),'k'))// ' : ', &
+                  exp_data(i)%energy - (orthoE(exp_data(i)%f_pos) - &
+                  orthoE(exp_data(i)%i_pos))
+             !
+          endif
+          !
+       enddo
+       !
+       write(*,*)
+       write(*,*) "    Beta:", params(1)
+       write(*,*) "   Gamma:", params(2)
+       write(*,*) "  Gamma2:", params(3)
+       write(*,*) "   Kappa:", params(4)
+       write(*,*)
+       write(*,*) "       a:", params(5)
+       write(*,*) "       b:", params(6)
+       write(*,*) "       c:", params(7)
+       write(*,*) "       d:", params(8)
+       write(*,*)
+       write(*,*) "     Qpq:", params(9)
+       write(*,*) "    QpqW:", params(10)
+       write(*,*) "      v1:", params(11)
+       
+       !
+    endif
+    !
   end function chi2
   !
   !*****************************************************************************************
@@ -779,6 +829,9 @@ contains
     double precision:: grad(*), xval(*), fval
     integer:: iflag, npar
     double precision, external:: chi2
+    integer:: miflag
+    common/minuit_iflag/miflag
+    miflag=iflag
     !
     fval=chi2(xval)
     !

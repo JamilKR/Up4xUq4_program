@@ -16,6 +16,7 @@ contains
     !
     integer,intent(in):: w1,j1,w2,j2
     double precision:: RME_Casimir_SOp4
+    integer:: v
     !
     if ((w1/=w2) .or. (j1/=j2)) then
        !
@@ -23,7 +24,9 @@ contains
        !
     else
        !
-       RME_Casimir_SOp4 = dble( w1*(w1+2) )
+       !RME_Casimir_SOp4 = dble( w1*(w1+2) )
+       v = (Npval-w1)/2
+       RME_Casimir_SOp4 = 4.0d0*dble(v)*(1.0d0/dble(Npval)-1.0d0+dble(v)/dble(Npval))
        !
     endif
     !

@@ -1,15 +1,15 @@
 #
 # BuckProgram_fit input
 #
-&num Npval=34, Nqval=5, lambda_max=5, inp_exp="exp_T200_JCP.dat" /
+&num Npval=34, Nqval=5, lambda_max=5, inp_exp="exp_T200_REASSGND.dat" /
 #
-&mol bet=-1081.67d0, gam=58.32d0, gam2=-0.035d0, kap=0.8d0 /
+&mol bet=-1081.67d0, gam=58.3236223d0, gam2=-0.03538353d0, kap=0.80481241d0 /
 #
-&cag a=179.0d0, b=8.44d0, c=-3.22d0, d=-10.0d0 /
+&cag a=179.019967d0, b=8.44032471d0, c=-3.21767353d0, d=0.0d0 /
 #
-&int Qpq=0.85d0, Qpqw=-0.027d0, v1=-1.05d0 /
+&int Qpq=0.85290463d0, Qpqw=-0.02732809d0, v1=-1.05123074d0 /
 #
-&fit Fit_par = "fix " /
+&fit Fit_par = "fix  2 3 4 5 6 7 8 9 10 11" /
 #
 # bet ----> 1
 # gam ----> 2
