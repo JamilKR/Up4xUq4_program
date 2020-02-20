@@ -3,6 +3,7 @@ module MOD_Up_x_Uq
   use MOD_matfun
   use MOD_Up4
   use MOD_Uq4
+  !Lapack95
   USE F95_LAPACK, ONLY: LA_SYEVR
   !
   implicit none
@@ -839,6 +840,9 @@ contains
 31  format('CHI2 =',F17.2,', RMS = ', F14.4, ', SIGMA = ', F14.4)
     !
   end subroutine FCN
+  !
+  !*****************************************************************************************
+  !
   !
   !*****************************************************************************************
   !

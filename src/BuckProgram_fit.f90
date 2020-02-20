@@ -106,7 +106,6 @@ program BuckProgram
      call build_Up_x_Uq_matrix(basis_ortho(1:5,ijk_ortho(i):ijk_ortho(i)+dim_ortho(i)-1), &
           QpQq(i)%ortho,RME_Qp_x_Qq_0)
      !
-     Uncomment !!!! 
      allocate(aux(1:dim_para(i),1:dim_para(i)))
      call build_Up_x_Uq_matrix(basis_para(1:5,ijk_para(i):ijk_para(i)+dim_para(i)-1), &
           aux, RME_Ip_x_SOq4) ! SOp4 diag-matrix para base
