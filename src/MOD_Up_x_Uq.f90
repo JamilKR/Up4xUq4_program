@@ -457,21 +457,12 @@ contains
     !
     do line=1,dim
        !
-#ifdef __INTEL_COMPILER
        read(nt,123) data(line)%ist(1),data(line)%ist(2),data(line)%ist(3), &
             data(line)%ist(4),data(line)%ist(5), data(line)%fst(1),data(line)%fst(2), &
             data(line)%fst(3),data(line)%fst(4),data(line)%fst(5),data(line)%energy, &
             data(line)%intensity
        data(line)%ist(1)=Npval-2*data(line)%ist(1)
        data(line)%fst(1)=Npval-2*data(line)%fst(1)
-#else
-       read(nt,*) data(line)%ist(1),data(line)%ist(2),data(line)%ist(3), &
-            data(line)%ist(4),data(line)%ist(5), data(line)%fst(1),data(line)%fst(2), &
-            data(line)%fst(3),data(line)%fst(4),data(line)%fst(5),data(line)%energy, &
-            data(line)%intensity
-       data(line)%ist(1)=Npval-2*data(line)%ist(1)
-       data(line)%fst(1)=Npval-2*data(line)%fst(1)
-#endif
        !
        if ( mod(data(line)%ist(2),2) == 0 ) then
           !
@@ -497,10 +488,7 @@ contains
        !
     enddo
     !
-    !123 format(2(4(I1,','),I1,';  '),F6.1,';  ',4.2)
-#ifdef __INTEL_COMPILER
-123 format(2(5(I1,A1),'  '),F6.1,A1,'  ',F4.2)
-#endif
+123 format(10I2,F7.1,F4.2)
     !
     close(nt)
     !
