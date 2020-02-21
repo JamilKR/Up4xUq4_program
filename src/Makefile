@@ -4,8 +4,8 @@ BIN   = ../bin/
 
 
 FC = gfortran
-FFLAGS = -g -Wall -O3 -fcheck=all -cpp
-#FFLAGS = -Wall -O3 -cpp -fopenmp
+#FFLAGS = -g -Wall -O3 -fcheck=all -cpp
+FFLAGS = -Wall -O3 -cpp -fopenmp
 
 MODLIB = -I/usr/local/lib/lapack95/lapack95_modules
 OPTLIB = -lblas -llapack /usr/local/lib/lapack95/lapack95.a

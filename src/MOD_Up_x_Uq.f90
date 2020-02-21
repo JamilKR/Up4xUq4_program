@@ -660,6 +660,11 @@ contains
     call mkl_set_dynamic(0)
 #endif
     !
+#ifdef __GFORTRAN__
+    !$OMP PARALLEL DO DEFAULT(SHARED), PRIVATE(aux,j,k,state)
+#elif defined __INTEL_COMPILER
+    !$OMP PARALLEL DO DEFAULT(SHARED), PRIVATE(aux,j,k,state,vectors)
+#endif
     do i=0,lambda_max
        !
        ! Build the Hamiltonians
