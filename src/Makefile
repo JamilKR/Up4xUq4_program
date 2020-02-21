@@ -69,4 +69,4 @@ test_6: $(test_6_obj)
 	$(FC) $(FFLAGS)  -o $(BIN)$@".out" $^ $(OPTLIB)
 
 clean:
-	@rm -f *.o *.mod *.out *~ $(BIN)*.out
+	@rm -f *.o *.mod *.out *~ $(BIN)"BuckProgram_fit.out"
