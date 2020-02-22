@@ -298,6 +298,27 @@ contains
   !
   !*****************************************************************************************
   !
+  function RME_QpQqSOp4(w1,j1,n1,l1,lam1,w2,j2,n2,l2,lam2)
+    !
+    ! It's not the most smart way, but It's useful
+    ! < state 1 | | 0.5 * ( SOp(4)[QpxQq] + [QpxQq]SOp(4) ) | | state 2 > 
+    !
+    implicit none
+    !
+    integer, intent(in):: w1,J1,n1,L1,lam1, w2,J2,n2,L2,lam2
+    double precision:: RME_QpQqSOp4
+    !
+    RME_QpQqSOp4 = 0.0d0
+    !
+    if ( lam1 /= lam2 ) return
+    !
+    RME_QpQqSOp4 = 0.5d0 * ( RME_Casimir_SOp4(w1,j1,w1,j1) + &
+         RME_Casimir_SOp4(w2,j2,w2,j2) ) * RME_Qp_x_Qq_0(w1,j1,n1,l1,lam1,w2,j2,n2,l2,lam2)
+    !
+  end function RME_QpQqSOp4
+  !
+  !*****************************************************************************************
+  !
   subroutine build_Up_x_Uq_matrix(basis,matrix,RME_fun,iprint)
     !
     ! This function build the para / ortho matrices using the given basis.

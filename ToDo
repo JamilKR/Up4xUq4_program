@@ -4,4 +4,4 @@
 
 2. Improve reap_expdat subroutine of MOD_Up_x_Uq module
 
-3. Improve QpQqW matrices. Too slow !!! [IMPORTANT]
+3. Review QpQqW matrix !!! 
