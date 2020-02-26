@@ -1,0 +1,120 @@
+\documentclass[english,twoside, openright]{report}
+\usepackage[utf8]{inputenc}
+\usepackage{babel}
+\usepackage{physics}
+\usepackage{xcolor}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{lineno,hyperref}
+\usepackage{hyperref}
+
+\newcommand{\eigket}[1]{
+  \left| \left. \varphi^{\omega_{#1},J_{#1}}_{n_{#1},L_{#1}};\;\Lambda_{#1}\right.\right\rangle
+}
+
+
+\newcommand{\eigbra}[1]{
+  \left\langle \left. \varphi^{\omega_{#1},J_{#1}}_{n_{#1},L_{#1}};\;\Lambda_{#1}\right.\right|
+}
+
+\newcommand{\eigval}[1]{
+  \text{E}^{\omega_{#1},J_{#1}}_{n_{#1},L_{#1}}
+}
+
+\newcommand{\lamblock}[1]{
+  \left\{
+    \begin{matrix}
+      \hat{\omega}_{#1} , \hat{J}_{#1} \\
+      \hat{n}_{#1} , \hat{L}_{#1} 
+    \end{matrix}
+  \right\}_{\Lambda_{#1}} 
+}
+
+\newcommand{\coef}[1]{
+  \mathcal{C}^{\Lambda_{#1}}_{\hat{\omega}_{#1},\hat{J}_{#1};\hat{n}_{#1},\hat{L}_{#1}}
+}
+
+
+\newcommand{\coefm}[1]{
+  \mathcal{C}^{\Lambda_{#1}}_{\varphi_{#1}}
+}
+
+\newcommand{\pqket}[1]{
+  \left| \left. \hat{\omega}_{#1} \hat{J}_{#1},\hat{n}_{#1}\hat{L}_{#1} ; \Lambda_{#1} \right.\right\rangle
+}
+
+\newcommand{\pqbra}[1]{
+  \left\langle \left. \hat{\omega}_{#1} \hat{J}_{#1},\hat{n}_{#1}\hat{L}_{#1} ; \Lambda_{#1} \right.\right|
+}
+
+\newcommand{\ppmat}[1]{
+  \left[\;
+    \underline{\underline{
+        #1
+      }}
+  \;\right]
+}
+
+\author{Jamil KR}
+\title{$U_p(4)\; \times\; U_q(4)$. Intensity lines.}
+
+\begin{document}
+\maketitle
+
+\begin{equation}
+  \eigket{1} \; \eigbra{2} \; \lamblock{1} \pqket{1} \pqbra{2}\; \ppmat{C}
+\end{equation}
+
+\section{Eigensystem}
+Hamiltonian:
+\begin{equation}
+  \hat{H} \; = \; \hat{H}_{\text{mol}} \; + \; \hat{H}_{\text{cage}} \;+\; \hat{H}_{\text{int}}
+\end{equation}
+
+Eigenvalues problem:
+\begin{align}
+  \hat{H}\ket{\varphi}&=E\ket{\varphi} \nonumber \\
+  \hat{H}\eigket{} &= \eigval{}\eigket{} \\
+  \eigket{} & = \sum\limits_{\tiny{\lamblock{}}} \coef{} \pqket{} \nonumber
+\end{align}
+
+The quantum numbers of the eigenstates are assigned according to the
+maximum coefficient over the basis. The summation is over all the
+states that belong to the para/ortho $\Lambda$-block.
+
+\section{$\hat{d}^{(1)}$  dipolar operator}
+Let $\hat{d}^{(1)}$ be a dipolar operator which doesn't mix para and ortho states.
+
+\begin{align}
+  & \eigbra{1}\left|\hat{d}^{(1)}\right| \eigket{2}  = \\
+  = & \left[\sum\limits_{\tiny{\lamblock{1}}}
+      \coef{1}\pqbra{1}
+      \right]
+      \left|\hat{d}^{(1)}\right|
+      \left[\sum\limits_{\tiny{\lamblock{2}}}
+      \coef{2}\pqket{2}
+      \right] \nonumber \\
+  = & \sum\limits_{\tiny{\lamblock{1}}} \sum\limits_{\tiny{\lamblock{2}}}
+      \coef{1}\coef{2}\pqbra{1} \left|\hat{d}^{(1)}\right| \pqket{2} \nonumber \\
+  = & \ppmat{\coefm{1}}^{T} \ppmat{d^{(1)}_{\Lambda_1,\Lambda_2}} \ppmat{\coefm{2}}
+\end{align}
+
+where $\ppmat{\coefm{}}$ is a
+$\left(\text{dim\_}\Lambda\times 1\right)$ matrix. The dimension of
+$\ppmat{\coefm{1}}^{T}$ is
+$\left(1\times\text{dim\_}\Lambda_1\right)$, of
+$\ppmat{d^{(1)}_{\Lambda_1,\Lambda_2}}$ is
+$\left(\text{dim\_}\Lambda_1\times\text{dim\_}\Lambda_2\right)$, and
+$\ppmat{\coefm{2}}$, $\left(\text{dim\_}\Lambda_2\times 1\right)$.
+
+Now we need to build all the $\ppmat{d^{(1)}_{\Lambda_1,\Lambda_2}}$
+for para and ortho cases when it's needed.
+
+Steps:
+\begin{enumerate}
+\item Read experimental data and allocate the needed matrices.
+\item Solve the eigensystem and compute the eigenstates
+\item ... 
+\end{enumerate}
+
+\end{document}
