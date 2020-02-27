@@ -201,4 +201,59 @@ contains
   !
   !*****************************************************************************************
   !
+  function RME_np(w1,j1,w2,j2,iprint)
+    !
+    ! < [Np] w1 J1 || np || [Np] w2 J2 >
+    !
+    implicit none
+    !
+    integer, intent(in):: w1,j1,w2,j2
+    double precision:: RME_np
+    integer, optional:: iprint
+    !
+    if (present(iprint) .and. iprint .ge. 2) then
+       !
+       write(*,111)  "< [",Npval,"] ",w1,", ",J1," || np || [",Npval,"] ",w2,", ",J2," >"
+111    format(A,2(I3,A,2(I2,A)))
+       !
+    endif
+    !
+    RME_np = 0.0d0
+    !
+    if ( j1/=j2 ) then
+       !
+       if(present(iprint) .and. iprint .ge. 2) write(*,"(T40,F7.2)") RME_np
+       return
+       !
+    endif
+    !
+    if ( w1 == w2 ) then
+       !
+       if ( w1 == 0 ) then
+          RME_np = 3.0d0*dble(Npval)/4.0d0
+       else
+          RME_np = ( 0.5d0*dble(Npval-1) + dble(Npval+2)*0.5d0*dble(j1*(j1+1))/ &
+               dble(w2*(w2+2)) ) * sqrt(2.0d0*dble(j1)+1.0d0)
+       endif
+       !
+    elseif ( w1 == w2+2 ) then
+       !
+       RME_np = sqrt( dble(2*j1+1)*dble(Npval-w2)*dble(Npval+w2+4)*dble(w2-j1+1)* &
+            dble(w2-j1+2)*dble(w2+j1+2)*dble(w2+j1+3) / ( 16.0d0*dble((w2+2)*(w2+1))* &
+            dble((w2+2)*(w2+3)) ) )
+       !
+    elseif ( w1 == w2-2 ) then
+       !
+       RME_np = sqrt( dble(2*j1+1)*dble(Npval-w2+2)*dble(Npval+w2+2)*dble(w2-j1-1)* &
+            dble(w2-j1)*dble(w2+j1)*dble(w2+j2+1) / ( 16.0d0*dble(w2*(w2-1))* &
+            dble(w2*(w2+1)) ) )
+       !
+    endif
+    !
+    if(present(iprint) .and. iprint .ge. 2) write(*,"(T40,F7.2)") RME_np
+    !
+  end function RME_np
+  !
+  !*****************************************************************************************
+  !
 end module MOD_Up4
