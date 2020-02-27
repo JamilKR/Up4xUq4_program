@@ -1,17 +1,19 @@
 program test_7
   use MOD_Up4,only: RME_np,Npval
+  use MOD_Uq4,only: RME_Dq_prima,Nqval
   implicit none
   !
-  integer:: w1, w2, j1, j2
-  double precision:: np
+  integer:: n1, n2, l1, l2
+  double precision:: dq
   !
-  Npval = 4
+  Nqval = 4
   !
-  do w1=Npval,0,-1
-     do w2=Npval,0,-1
-        do j1=0,w1
-           j2=j1
-           np = RME_np(w1,j1,w2,j2,iprint = 2)
+  do n1=Nqval,0,-1
+     do n2=Nqval,0,-1
+        do l1=n1,0,-2
+           do l2=n2,0,-2
+              dq = RME_Dq_prima(n1,l1,n2,l2,iprint = 2)
+           enddo
         enddo
      enddo
   enddo

@@ -133,4 +133,51 @@ contains
   !
   !*****************************************************************************************
   !
+  function RME_Dq_prima(n1,l1,n2,l2,iprint)
+    !
+    ! < [Nq] n1 L1 || Dq' || [Nq] n2 L2 >
+    !
+    implicit none
+    !
+    integer, intent(in):: n1,l1,n2,l2
+    double precision:: RME_Dq_prima
+    integer, optional:: iprint
+    !
+    if (present(iprint) .and. iprint .ge. 2) then
+       !
+       write(*,111)  "< [",Nqval,"] ",n1,", ",l1," || Dq' || [",Nqval,"] ",n2,", ",l2," >"
+111    format(A,2(I3,A,2(I2,A)))
+       !
+    endif
+    !
+    RME_Dq_prima = 0.0d0
+    !
+    if ( (n1 == n2-1) .and. (l1 == l2-1) ) then
+       !
+       RME_Dq_prima = - 1.0d0*sqrt( dble(Nqval-n2+1)*dble(n2+l2+1)*dble(l2) )
+       !
+    elseif ( (n1==n2-1) .and. (l1==l2+1) ) then
+       !
+       RME_Dq_prima = -1.0d0*sqrt( dble(Nqval-n2+1)*dble(n2-l2)*dble(l2+1) )
+       !
+    elseif ( (n1==n2+1) .and. (l1==l2-1) ) then
+       !
+       RME_Dq_prima = sqrt( dble(Nqval-n2)*dble(n2-l2+2)*dble(l2) )
+       !
+    elseif ( (n1==n2+1) .and. (l1==l2+1) ) then
+       !
+       RME_Dq_prima = sqrt( dble(Nqval-n2)*dble(n2+l2+3)*dble(l2+1) )
+       !
+    else
+       !
+       RME_Dq_prima = 0.0d0
+       !
+    endif
+    !
+    if(present(iprint) .and. iprint .ge. 2) write(*,"(T40,F7.2)") RME_Dq_prima
+    !
+  end function RME_Dq_prima
+  !
+  !*****************************************************************************************
+  !
 end module MOD_Uq4
