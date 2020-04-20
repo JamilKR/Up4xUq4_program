@@ -541,30 +541,6 @@ contains
   !
   !*****************************************************************************************
   !
-  function RME_sop4(w1,j1,n1,l1,lam1,w2,j2,n2,l2,lam2)
-    !
-    ! RME_sop4 = diagonal !!!
-    ! RME_sop4 = w(w+2)
-    !
-    implicit none
-    !
-    integer,intent(in):: w1,j1,n1,l1,lam1, w2,j2,n2,l2,lam2
-    double precision  :: RME_sop4
-    !
-    if ( (w1==w2) .and. (j1==j2) .and. (n1==n2) .and. (l1==l2) .and. (lam1==lam2) ) then
-       !
-       RME_sop4 = dble( w1*(w1+2) )
-       !
-    else
-       !
-       RME_sop4 = 0.0d0
-       !
-    endif
-    !
-  end function RME_sop4
-  !
-  !*****************************************************************************************
-  !
   subroutine build_ham(H,bet,gam,gam2,kap, a,b,c,d, Qpq, Qpqw, v1, basis)
     !
     !
@@ -887,6 +863,33 @@ contains
   !
   !*****************************************************************************************
   !
+  function RME_np_x_Dq_1(w1,j1,n1,l1,lam1,w2,j2,n2,l2,lam2)
+    !
+    ! < state 1 || [ np x Dq' ]^(1) || state 2 >
+    !
+    integer, intent(in):: w1,J1,n1,L1,lam1, w2,J2,n2,L2,lam2
+    double precision:: RME_np_x_Dq_1
+    !
+    RME_np_x_Dq_1 = sqrt( 3.0d0 * dble(2*lam1+1)*dble(2*lam2+1) ) * &
+         wigner_9j( j1,l1,lam1, j2,l2,lam2, 0,1,1 ) * &
+         RME_Dq_prima(n1,l1,n2,l2) * RME_np(w1,j1,w2,j2)
+    !
+  end function RME_np_x_Dq_1
+  !
+  !*****************************************************************************************
+  !
+  function RME_Qp2_x_Dq_1(w1,j1,n1,l1,lam1,w2,j2,n2,l2,lam2)
+    !
+    !  < state 1 || [ Qp2 x Dq' ]^(1) || state 2 >
+    !
+    integer, intent(in):: w1,J1,n1,L1,lam1, w2,J2,n2,L2,lam2
+    double precision:: RME_Qp2_x_Dq_1
+    !
+    RME_Qp2_x_Dq_1 = sqrt( 3.0d0 * dble(2*lam1+1)*dble(2*lam2+1) ) * &
+         wigner_9j( j1,l1,lam1, j2,l2,lam2, 2,1,1 ) * &
+         RME_Dq_prima(n1,l1,n2,l2) * RME_Qp2(w1,j1,w2,j2)
+    !
+  end function RME_Qp2_x_Dq_1
   !
   !*****************************************************************************************
   !
