@@ -5,7 +5,7 @@ program test
   implicit none
   integer::n1,n2,k1,k2,stat
   double precision,allocatable:: work(:)
-  integer,parameter:: L= 0
+  integer,parameter:: L= 2
   integer:: dim
   double precision,allocatable:: A(:,:),B(:)
   !

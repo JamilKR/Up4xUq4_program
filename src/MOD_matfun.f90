@@ -158,5 +158,82 @@ contains
   !
   !*****************************************************************************************
   !
+  function wigner_9j(a1,a2,a3,b1,b2,b3,c1,c2,c3)
+    !
+    ! / a1, a2, a3 \
+    !{  b1, b2, b2  }
+    ! \ c1, c2, c2 /
+    !
+    ! All numbers must be integers ...
+    !
+    ! REF. Jahn,Hope, PRC93(1954).
+    ! https://www2.pd.infn.it/~fortunat/Files/racah.pac3.f
+    !
+    implicit none
+    !
+    integer, intent(in):: a1,a2,a3,b1,b2,b3,c1,c2,c3
+    double precision:: wigner_9j
+    integer:: xmin, xmax, x
+    !
+    wigner_9j = 0.0d0
+    !
+    ! Triangular Condition:
+#define aaa a3
+#define bbb a1
+#define ccc a2
+    if ( (aaa .lt. abs(bbb-ccc)) .or. (aaa .gt.(bbb+ccc)) ) return !1.1
+#undef aaa
+#undef bbb
+#undef ccc
+#define aaa b3
+#define bbb b1
+#define ccc b2
+    if ( (aaa .lt. abs(bbb-ccc)) .or. (aaa .gt.(bbb+ccc)) ) return !1.2
+#undef aaa
+#undef bbb
+#undef ccc
+#define aaa c3
+#define bbb c1
+#define ccc c2
+    if ( (aaa .lt. abs(bbb-ccc)) .or. (aaa .gt.(bbb+ccc)) ) return !1.3
+#undef aaa
+#undef bbb
+#undef ccc
+#define aaa c1
+#define bbb a1
+#define ccc b1
+    if ( (aaa .lt. abs(bbb-ccc)) .or. (aaa .gt.(bbb+ccc)) ) return !2.1
+#undef aaa
+#undef bbb
+#undef ccc
+#define aaa c2
+#define bbb a2
+#define ccc b2
+    if ( (aaa .lt. abs(bbb-ccc)) .or. (aaa .gt.(bbb+ccc)) ) return !2.2
+#undef aaa
+#undef bbb
+#undef ccc
+#define aaa c3
+#define bbb a3
+#define ccc b3
+    if ( (aaa .lt. abs(bbb-ccc)) .or. (aaa .gt.(bbb+ccc)) ) return !2.3
+#undef aaa
+#undef bbb
+#undef ccc
+    !
+    xmin = max(abs(c2-c3),abs(b1-b3),abs(a1-a2))
+    xmax = min(c2+c3,b1+b3,a1+a2)
+    !
+    do x=xmin,xmax
+       !
+       wigner_9j = wigner_9j + dble(2*x+1) * wigner_6j(a1,b1,c1,c2,c3,x) * &
+            wigner_6j(a2,b2,c2,b1,x,b3) *    wigner_6j(a3,b3,c3,x,a1,a2)
+       !
+    enddo
+    !
+  end function wigner_9j
+  !
+  !*****************************************************************************************
+  !  
 end module MOD_matfun
     

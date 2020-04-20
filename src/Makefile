@@ -35,6 +35,10 @@ test_6_obj = $(addsuffix .o, $(basename ${test_6_src}))
 test_7_src = MOD_matfun.f90 MOD_Up4.f90 MOD_Uq4.f90 MOD_Up_x_Uq.f90  test_7.f90
 test_7_obj = $(addsuffix .o, $(basename ${test_7_src}))
 
+
+test_8_src = MOD_matfun.f90 MOD_Up4.f90 MOD_Uq4.f90 MOD_Up_x_Uq.f90  test_8.f90
+test_8_obj = $(addsuffix .o, $(basename ${test_8_src}))
+
 %.o: %.f90 
 	$(FC) $(FFLAGS) -c $(MODLIB) -o $@ $<
 
@@ -72,6 +76,9 @@ test_6: $(test_6_obj)
 	$(FC) $(FFLAGS)  -o $(BIN)$@".out" $^ $(OPTLIB)
 
 test_7: $(test_7_obj)
+	$(FC) $(FFLAGS)  -o $(BIN)$@".out" $^ $(OPTLIB)
+
+test_8: $(test_8_obj)
 	$(FC) $(FFLAGS)  -o $(BIN)$@".out" $^ $(OPTLIB)
 
 clean:
