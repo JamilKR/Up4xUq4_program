@@ -221,8 +221,8 @@ contains
 #undef bbb
 #undef ccc
     !
-    xmin = max(abs(c2-c3),abs(b1-b3),abs(a1-a2))
-    xmax = min(c2+c3,b1+b3,a1+a2)
+    xmin = max(abs(a1-c3),abs(b1-c2),abs(a2-b3))
+    xmax = min(a1+c3,b1+c2,a2+b3)
     !
     do x=xmin,xmax
        !

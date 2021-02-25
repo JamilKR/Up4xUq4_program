@@ -893,6 +893,21 @@ contains
   !
   !*****************************************************************************************
   !
+    function RME_Qp2_x_nq_2(w1,j1,n1,l1,lam1,w2,j2,n2,l2,lam2)
+    !
+    !  < state 1 || [ Qp2 x nq ]^(2) || state 2 > ! Quadruple 
+    !
+    integer, intent(in):: w1,J1,n1,L1,lam1, w2,J2,n2,L2,lam2
+    double precision:: RME_Qp2_x_nq_2
+    !
+    RME_Qp2_x_nq_2 = sqrt( 5.0d0 * dble(2*lam1+1)*dble(2*lam2+1) ) * &
+         wigner_9j(j1,l1,lam1, j2,l2,lam2, 2,0,2) * &
+         RME_Casimir_Uq3(n1,l1,n2,l2) * RME_Qp2(w1,j1,w2,j2)
+    !
+  end function RME_Qp2_x_nq_2
+  !
+  !*****************************************************************************************
+  !
 end module MOD_Up_x_Uq
 
 

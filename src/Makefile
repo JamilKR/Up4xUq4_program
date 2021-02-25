@@ -39,6 +39,10 @@ test_7_obj = $(addsuffix .o, $(basename ${test_7_src}))
 test_8_src = MOD_matfun.f90 MOD_Up4.f90 MOD_Uq4.f90 MOD_Up_x_Uq.f90  test_8.f90
 test_8_obj = $(addsuffix .o, $(basename ${test_8_src}))
 
+
+test_9_src = MOD_matfun.f90 MOD_Up4.f90 MOD_Uq4.f90 MOD_Up_x_Uq.f90  test_9.f90
+test_9_obj = $(addsuffix .o, $(basename ${test_9_src}))
+
 %.o: %.f90 
 	$(FC) $(FFLAGS) -c $(MODLIB) -o $@ $<
 
@@ -80,6 +84,9 @@ test_7: $(test_7_obj)
 
 test_8: $(test_8_obj)
 	$(FC) $(FFLAGS)  -o $(BIN)$@".out" $^ $(OPTLIB)
+
+test_9: $(test_9_obj)
+	$(FC) $(FFLAGS)  -o $@".out" $^ $(OPTLIB)
 
 clean:
 	@rm -f *.o *.mod *.out *~ $(BIN)"BuckProgram_fit.out"
