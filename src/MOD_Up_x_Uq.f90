@@ -39,7 +39,16 @@ module MOD_Up_x_Uq
        Ham(:)    , & ! Hamiltonian para and ortho
        SOq4(:)   , & ! SOq(4) operator matrices para and ortho
        QpQq(:)   , & ! Qp x Qq operator matrices para and ortho
-       QpQqW(:)    ! Qp x Qq SOp(4) matrices para and ortho
+       QpQqW(:)      ! Qp x Qq SOp(4) matrices para and ortho
+
+  double precision, allocatable:: &
+       EnergiesPara(:), &
+       EnergiesOrtho(:) ! Fixed energies to compute intensities
+  !
+  ! Array with the expected value of transitions:
+  ! shape = len(exp data)x3
+  double precision, allocatable:: intop(:,:)
+  double precision:: temp ! Reduced temperature (kB*T)
   !
 contains
   !
@@ -638,9 +647,12 @@ contains
   !*****************************************************************************************
   !
   subroutine eigensystem(paraE,orthoE,lambda_max, &
-       bet,gam,gam2,kap, a,b,c,d, Qpq, Qpqw, v1)
+       bet,gam,gam2,kap, a,b,c,d, Qpq, Qpqw, v1,  &
+       avec )
     !
-    !
+    ! 26/02/2021
+    ! avec = .False. (default)
+    ! avec = .True. : H ---> Eigenfunctions
     !
     implicit none
     !
@@ -651,6 +663,27 @@ contains
     integer::i,j,k, state(1:5)
     double precision, allocatable:: aux(:)
     double precision:: ZPE
+    !
+    ! Optional argument to compute eigenvectors
+    logical,optional:: avec
+    ! Auxiliary memory to store temporally the coefficients
+    type(matrix):: auxV(0:lambda_max)
+    ! Default value of avec...
+    if (.not. present(avec)) then
+       avec = .false.
+    elseif (avec .eqv. .true.) then
+       ! Allocate auxV:
+       do i=0,lambda_max
+          !
+          allocate( AuxV(i)%para(1:dim_para(i),1:dim_para(i)), &
+               AuxV(i)%ortho(1:dim_ortho(i),1:dim_ortho(i)) )
+          !
+          AuxV(i)%para = 0.0d0
+          AuxV(i)%ortho= 0.0d0
+          !
+       enddo
+       !
+    endif
     !
 #ifdef __INTEL_COMPILER
     double precision, allocatable:: vectors(:,:)
@@ -688,6 +721,10 @@ contains
                1:5,ijk_para(i):ijk_para(i)+dim_para(i)-1) )
           k = find_pos(state,basis_para)
           paraE(k) = aux(j)
+          ! Ordering eigenvectors if avec=.true.
+          if ( avec .eqv. .true.) then
+             auxV(i)%para(:,k-sum(dim_para(0:i-1))) = Ham(i)%para(:,j)
+          endif
        enddo
        deallocate(aux)
        !
@@ -708,9 +745,19 @@ contains
                1:5,ijk_ortho(i):ijk_ortho(i)+dim_ortho(i)-1) )
           k = find_pos(state,basis_ortho)
           orthoE(k) = aux(j)
+          ! Ordering eigenvectors if avec=.true.
+          if ( avec .eqv. .true.) then
+             auxV(i)%ortho(:,k-sum(dim_ortho(0:i-1))) = Ham(i)%ortho(:,j)
+          endif
        enddo
        deallocate(aux)
        !
+       ! If avec ---> eigenvectors are stored in Hmatrix (so ... the
+       ! Hamiltonian is killed ...)
+       if (avec .eqv. .true.) then
+          Ham(i)%para = auxV(i)%para
+          Ham(i)%ortho= auxV(i)%ortho
+       endif
        !
     enddo
     !
@@ -718,7 +765,7 @@ contains
     paraE = paraE - ZPE
     orthoE = orthoE - ZPE
     !
-  end subroutine eigensystem
+  end subroutine eigensystem    
   !
   !*****************************************************************************************
   !
@@ -893,7 +940,7 @@ contains
   !
   !*****************************************************************************************
   !
-    function RME_Qp2_x_nq_2(w1,j1,n1,l1,lam1,w2,j2,n2,l2,lam2)
+  function RME_Qp2_x_nq_2(w1,j1,n1,l1,lam1,w2,j2,n2,l2,lam2)
     !
     !  < state 1 || [ Qp2 x nq ]^(2) || state 2 > ! Quadruple 
     !
@@ -906,6 +953,332 @@ contains
     !
   end function RME_Qp2_x_nq_2
   !
+  !*****************************************************************************************
+  !
+  subroutine StoreEigenMatel(intop)
+    !
+    ! Computes < psi1,lambda1, S | T^(t)| psi2, lambda2, S >
+    ! and store them in intop(len(exp_Data),1:3)
+    !
+    double precision, intent(out):: intop(:,:)
+    integer:: &
+         trans, & ! loop over all experimental transition
+         i_pos, f_pos
+    !
+    do trans=1,total_exp
+       !
+       i_pos=exp_data(trans)%i_pos
+       f_pos=exp_data(trans)%f_pos
+       ! EigenExpected(coefs1,lamb1,coefs2,lamb2,S,RME_fun)
+       if ( mod(exp_data(trans)%ist(2),2) == 0 ) then! para-case
+          !
+          intop(trans,1) = EigenExpected( &
+               Ham( exp_data(trans)%ist(5) )%para(:,i_pos- &
+               sum(dim_para(0:exp_data(trans)%ist(5)-1))), & ! coefs1
+               exp_data(trans)%ist(5),                     & ! lamb1
+               Ham( exp_data(trans)%fst(5) )%para(:,f_pos- &
+               sum(dim_para(0:exp_data(trans)%fst(5)-1))), & ! coef2
+               exp_data(trans)%fst(5),                     & ! lamb2
+               0,  RME_np_x_Dq_1)
+          !
+          intop(trans,2) = EigenExpected( &
+               Ham( exp_data(trans)%ist(5) )%para(:,i_pos- &
+               sum(dim_para(0:exp_data(trans)%ist(5)-1))), & ! coefs1
+               exp_data(trans)%ist(5),                     & ! lamb1
+               Ham( exp_data(trans)%fst(5) )%para(:,f_pos- &
+               sum(dim_para(0:exp_data(trans)%fst(5)-1))), & ! coef2
+               exp_data(trans)%fst(5),                     & ! lamb2
+               0,  RME_Qp2_x_Dq_1)
+          !
+          intop(trans,3) = EigenExpected( &
+               Ham( exp_data(trans)%ist(5) )%para(:,i_pos- &
+               sum(dim_para(0:exp_data(trans)%ist(5)-1))), & ! coefs1
+               exp_data(trans)%ist(5),                     & ! lamb1
+               Ham( exp_data(trans)%fst(5) )%para(:,f_pos- &
+               sum(dim_para(0:exp_data(trans)%fst(5)-1))), & ! coef2
+               exp_data(trans)%fst(5),                     & ! lamb2
+               0,  RME_Qp2_x_nq_2)
+          !
+       else ! ortho-case
+          !
+          intop(trans,1) = EigenExpected( &
+               Ham( exp_data(trans)%ist(5) )%ortho(:,i_pos- &
+               sum(dim_ortho(0:exp_data(trans)%ist(5)-1))), & ! coefs1
+               exp_data(trans)%ist(5),                      & ! lamb1
+               Ham( exp_data(trans)%fst(5) )%ortho(:,f_pos- &
+               sum(dim_ortho(0:exp_data(trans)%fst(5)-1))), & ! coef2
+               exp_data(trans)%fst(5),                      & ! lamb2
+               1,  RME_np_x_Dq_1) 
+          !
+          intop(trans,2) = EigenExpected( &
+               Ham( exp_data(trans)%ist(5) )%ortho(:,i_pos- &
+               sum(dim_ortho(0:exp_data(trans)%ist(5)-1))), & ! coefs1
+               exp_data(trans)%ist(5),                      & ! lamb1
+               Ham( exp_data(trans)%fst(5) )%ortho(:,f_pos- &
+               sum(dim_ortho(0:exp_data(trans)%fst(5)-1))), & ! coef2
+               exp_data(trans)%fst(5),                      & ! lamb2
+               1,  RME_Qp2_x_Dq_1)
+          !
+          intop(trans,3) = EigenExpected( &
+               Ham( exp_data(trans)%ist(5) )%ortho(:,i_pos- &
+               sum(dim_ortho(0:exp_data(trans)%ist(5)-1))), & ! coefs1
+               exp_data(trans)%ist(5),                      & ! lamb1
+               Ham( exp_data(trans)%fst(5) )%ortho(:,f_pos- &
+               sum(dim_ortho(0:exp_data(trans)%fst(5)-1))), & ! coef2
+               exp_data(trans)%fst(5),                      & ! lamb2
+               1,  RME_Qp2_x_nq_2)
+          !
+       endif
+       !
+    enddo
+    !
+  end subroutine StoreEigenMatel
+  !
+  !*****************************************************************************************
+  !
+  function EigenExpected(coefs1,lamb1,coefs2,lamb2,S,RME_fun)
+    !
+    ! < psi1,lambda1, S | T^(t)| psi2, lambda2, S >
+    ! Input:
+    ! o) Coefs1: length = len(Block_lamb1)
+    ! o) lamb1
+    ! o) Coefs2: length = len(Block_lamb2)
+    ! o) lamb2
+    ! o) S : 0 if para, 1 if ortho
+    ! o) RME_fun (w1,j1,n1,l1,lam1,w2,j2,n2,l2,lam2)
+    !
+    ! Output:
+    ! o) < psi1,lambda1, S | T^(t)| psi2, lambda2, S >
+    !
+    !
+    double precision, intent(in) :: coefs1(:), coefs2(:)
+    integer, intent(in)         :: lamb1, lamb2, S
+    double precision, external  :: RME_fun
+    double precision            :: EigenExpected
+    integer                     :: i,j
+    !
+    EigenExpected = 0.0d0
+    !
+    if (S==0) then
+       !
+       do i = 1,dim_para(lamb1) !ijk_para(lamb1),ijk_para(lamb1)+dim_para(lamb1)
+          do j = 1,dim_para(lamb2) !ijk_para(lamb2),ijk_para(lamb2)+dim_para(lamb2)
+             !
+             EigenExpected = EigenExpected +   &
+                  coefs1(i)* &
+                  coefs2(j)* &
+                  RME_fun( &
+                  basis_para(1,i+ijk_para(lamb1)-1), &
+                  basis_para(2,i+ijk_para(lamb1)-1), &
+                  basis_para(3,i+ijk_para(lamb1)-1), &
+                  basis_para(4,i+ijk_para(lamb1)-1), &
+                  basis_para(5,i+ijk_para(lamb1)-1), &
+                  basis_para(1,j+ijk_para(lamb2)-1), &
+                  basis_para(2,j+ijk_para(lamb2)-1), &
+                  basis_para(3,j+ijk_para(lamb2)-1), &
+                  basis_para(4,j+ijk_para(lamb2)-1), &
+                  basis_para(5,j+ijk_para(lamb2)-1))
+             !
+          enddo
+       enddo
+       !
+    else if (S==1) then
+       !
+       do i = 1,dim_ortho(lamb1) !ijk_ortho(lamb1),ijk_ortho(lamb1)+dim_ortho(lamb1)
+          do j = 1,dim_ortho(lamb2) !ijk_ortho(lamb2),ijk_ortho(lamb2)+dim_ortho(lamb2)
+             !
+             EigenExpected = EigenExpected + &
+                  coefs1(i)* &
+                  coefs2(j)* &
+                  RME_fun( &
+                  basis_ortho(1,i+ijk_ortho(lamb1)-1), &
+                  basis_ortho(2,i+ijk_ortho(lamb1)-1), &
+                  basis_ortho(3,i+ijk_ortho(lamb1)-1), &
+                  basis_ortho(4,i+ijk_ortho(lamb1)-1), &
+                  basis_ortho(5,i+ijk_ortho(lamb1)-1), &
+                  basis_ortho(1,j+ijk_ortho(lamb2)-1), &
+                  basis_ortho(2,j+ijk_ortho(lamb2)-1), &
+                  basis_ortho(3,j+ijk_ortho(lamb2)-1), &
+                  basis_ortho(4,j+ijk_ortho(lamb2)-1), &
+                  basis_ortho(5,j+ijk_ortho(lamb2)-1))
+             !
+          enddo
+       enddo
+       !
+    end if
+    !
+  end function EigenExpected
+  !
+  !*****************************************************************************************
+  !
+  function chi2_int(params)
+    !
+    ! params(1) ---> npo
+    ! params(2) ---> dnD
+    ! params(3) ---> dQD
+    ! params(4) ---> qQn
+    !
+    implicit none
+    !
+    double precision,intent(in):: params(1:4)
+    double precision:: chi2_int, comp_int
+    integer:: i
+    integer::miflag
+    common/minuit_iflag/miflag
+    !
+    chi2_int = 0.0d0
+    !
+    do i=1,total_exp
+       !
+
+       !
+       chi2_int = chi2_int + ( exp_data(i)%intensity - &
+            compute_transition(params,exp_data(i),i) )**2.0d0
+       !
+    enddo
+    !
+    if (miflag == 3) then
+       !
+       write(*,'(/,A/)') "Residuals: exp - calc"
+       do i=1,total_exp
+          !
+          comp_int = compute_transition(params,exp_data(i),i)
+          !
+          if ( mod(exp_data(i)%ist(2),2) == 0 ) then ! para-state
+             !
+             write(*,'(A,F8.4,A,F8.4)') " Para:"// trim(pretty_braket(exp_data(i)%ist(1), &
+                  exp_data(i)%ist(2),exp_data(i)%ist(3),exp_data(i)%ist(4), &
+                  exp_data(i)%ist(5),'k'))//' ---> '// trim(pretty_braket( &
+                  exp_data(i)%fst(1),exp_data(i)%fst(2),exp_data(i)%fst(3), &
+                  exp_data(i)%fst(4),exp_data(i)%fst(5),'k'))// ' : ', &
+                  exp_data(i)%intensity - comp_int, "---", comp_int 
+             !
+          else !ortho-state
+             !
+             write(*,'(A,F8.4,A,F8.4)') "Ortho:"// trim(pretty_braket(exp_data(i)%ist(1), &
+                  exp_data(i)%ist(2),exp_data(i)%ist(3),exp_data(i)%ist(4), &
+                  exp_data(i)%ist(5),'k')) //' ---> '// trim(pretty_braket( &
+                  exp_data(i)%fst(1),exp_data(i)%fst(2),exp_data(i)%fst(3), &
+                  exp_data(i)%fst(4),exp_data(i)%fst(5),'k'))// ' : ', &
+                  exp_data(i)%intensity - comp_int, "---", comp_int 
+          endif
+          !
+       enddo
+       !
+       write(*,*)
+       write(*,*) "    npo npara/northo  :", params(1)
+       write(*,*) "    dnD [np x D'q]^(1):", params(2)
+       write(*,*) "    dQD [Qp x D'2]^(1):", params(3)
+       write(*,*) "    qQn [Qp x nq ]^(2):", params(4)       
+       !
+    endif
+    !
+  end function chi2_int
+  !  
+  !*****************************************************************************************
+  !
+  function compute_ProbTrans(npo,transition)
+    !
+    ! pi = nk (2lamb_i+1) exp(-Ei/KbT) / Sum_j[ 2lamb_j+1) exp(-Ej/KbT)]
+    !
+    ! Inputs:
+    ! o) npo: ratio between para and ortho
+    ! o) transitions: exp_point type
+    !
+    double precision, intent(in):: npo
+    type(exp_point),intent(in):: transition
+    double precision:: compute_ProbTrans, suma
+    integer :: lamb, i
+    !
+    suma = 0.0d0
+    if (mod(transition%ist(2),2)==0) then !para-case
+       !
+       do lamb=0,lambda_max
+          do i = ijk_para(lamb),ijk_para(lamb)+dim_para(lamb)-1
+             !
+             suma = suma + dble(2*lamb+1)*exp(-EnergiesPara(i) / temp)
+             !
+          enddo
+       enddo
+       !
+       compute_ProbTrans = npo * dble(2*transition%ist(5)+1) * &
+            exp(-EnergiesPara(transition%i_pos) / Temp )
+       !
+    else !ortho-case
+       !
+       do lamb=0,lambda_max
+          do i = ijk_ortho(lamb),ijk_ortho(lamb)+dim_ortho(lamb)-1
+             !
+             suma = suma + dble(2*lamb+1)*exp(-EnergiesOrtho(i) / temp)
+             !
+          enddo
+       enddo
+       !
+       compute_ProbTrans = (1.0d0/npo) * dble(2*transition%ist(5)+1) * &
+            exp(-EnergiesOrtho(transition%i_pos) / Temp )
+       !
+    endif
+    !
+  end function compute_ProbTrans
+  !  
+  !*****************************************************************************************
+  !
+  function compute_transition(params,transition,i)
+    !
+    ! Full transition:
+    ! Inputs:
+    ! o) params:
+    !    params(1) ---> npo
+    !    params(2) ---> dnD
+    !    params(3) ---> dQD
+    !    params(4) ---> qQn
+    ! o) transition: type exp_data
+    ! o) i: position in exp_data array
+    !
+    !
+    double precision,intent(in):: params(1:4)
+    type(exp_point), intent(in):: transition
+    integer, intent(in)        :: i
+    double precision           :: compute_transition
+    !
+    if( mod(transition%ist(2),2)==0 ) then !para-case
+       !
+       compute_transition = compute_ProbTrans(params(1),transition)* &
+            ( EnergiesPara( transition%f_pos ) - EnergiesPara( transition%i_pos ) ) * &
+            abs(params(2)*intop(i,1)+params(3)*intop(i,2)+params(4)*intop(i,3))
+       !
+    else !ortho-case
+       !
+       compute_transition = compute_ProbTrans(params(1),transition)* &
+            ( EnergiesOrtho( transition%f_pos ) - EnergiesOrtho( transition%i_pos ) ) * &
+            abs(params(2)*intop(i,1)+params(3)*intop(i,2)+params(4)*intop(i,3))
+       !
+    endif
+  end function compute_transition
+  !  
+  !*****************************************************************************************
+  !
+  subroutine FCN_int(npar,grad,fval,xval,iflag,chi2)
+    !
+    ! Minuit function
+    !
+    implicit none
+    !
+    double precision:: grad(*), xval(*), fval
+    integer:: iflag, npar
+    double precision, external:: chi2
+    integer:: miflag
+    common/minuit_iflag/miflag
+    miflag=iflag
+    !
+    fval=chi2(xval)
+    !
+    write(*,31) fval, sqrt(fval/dble(total_exp-npar)), sqrt(fval/dble(total_exp))
+31  format('CHI2 =',F17.2,', RMS = ', F14.4, ', SIGMA = ', F14.4)
+    !
+  end subroutine FCN_INT
+  
+  !  
   !*****************************************************************************************
   !
 end module MOD_Up_x_Uq

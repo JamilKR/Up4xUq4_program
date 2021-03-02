@@ -47,7 +47,9 @@
 \title{$U_p(4)\; \times\; U_q(4)$}
 \begin{document}
 \maketitle
+\tableofcontents
 
+\chapter{Modules}
 \begin{tikzpicture}[thick]
   \node[draw,rectangle,fill=green!20] at (-3,0)(a){$U_p(4)$ Module};
   \node[draw,rectangle,fill=olive!80,right of=a] at (0,0)(c){$U_p(4)\;\times\;U_q(4)$ Module};
@@ -90,7 +92,8 @@
     \texttt{wigner\_6j}$(j_1,j_2,j_3,l_1,l_2,l_3)\;=\;\wigsixj{j_1}{j_2}{j_3}{l_1}{l_2}{l_3}$
     \footnote{Definition of the book \textit{Nuclear Shell Theory} of
       Amos de-Shalit and Igal Talmi}
-  \item \texttt{wigner\_9j}$(j_1,j_2,j_3,l_1,l_2,l_3,k_1,k_2,k_3)\;=\;\wigninej{j_1}{j_2}{j_3}{l_1}{l_2}{l_3}{k_1}{k_2}{k_3}$\footnote{Integers only}
+  \item \texttt{wigner\_9j}$(j_1,j_2,j_3,l_1,l_2,l_3,k_1,k_2,k_3)\;=\;\wigninej{j_1}{j_2}{j_3}{l_1}{l_2}{l_3}{k_1}{k_2}{k_3}\;=\;
+    \wigninej{j_1}{j_2}{j_{12}}{j_3}{j_4}{j_{34}}{j_{13}}{j_{24}}{J}$\footnote{Integers only}
   \end{itemize}
 \end{itemize}
 
@@ -158,7 +161,11 @@ Hamiltonian:
   \item \texttt{SOq4(1:$\Lambda_{\text{max}}$)}: Type(\texttt{matrix}). $\cas{2}{SO_q(4)}$ para/ortho matrices
   \item \texttt{QpQq(1:$\Lambda_{\text{max}}$)}: Type(\texttt{matrix}). $\left[\hat{Q}_p^{(2)}\times\hat{Q}_q^{(2)}\right]^{(0)}$ para/ortho matrices
   \item \texttt{QpQqW(1:$\Lambda_{\text{max}}$)}: Type(\texttt{matrix}). $\left[\hat{Q}_p^{(2)}\times\hat{Q}_q^{(2)}\right]^{(0)} \cas{2}{SO_p(4)} + c.c.$ para/ortho matrices
-  
+  \item \texttt{EnergiesPara(Prtho)(1:sum(dims))}. Where energies will be
+    stored.
+  \item \texttt{intop(no Exp data, 1:3)}: To save the expected values
+    of the transitions operators in the EigenBasis.
+  \item \texttt{Temp} : Reduced temperature
   \end{itemize}
 \item Functions:
   \begin{itemize}
@@ -178,8 +185,15 @@ Hamiltonian:
   \item Function: \texttt{assig\_state}
   \item Function: \texttt{chi2}
   \item Function: \texttt{FCN}
-  \item Function: \texttt{RME\_np\_x\_Dq\_1}
-  \item Function: \texttt{RME\_Qp2\_x\_Dq\_1}
+  \item Function: \texttt{RME\_np\_x\_Dq\_1} (Dipolar operator)
+  \item Function: \texttt{RME\_Qp2\_x\_Dq\_1} (Dipolar operator)
+  \item Function: \texttt{RMS\_Qp2\_x\_nq\_2} (Quadrupolar operator)
+  \item Subroutine: \texttt{StoreEigenMatel}
+  \item Subroutine: \texttt{EigenExpected} ($<\psi_1| \hat T | \psi_2 >$)
+  \item Function: \texttt{chi2\_int} (Chi2 to fit intensities)
+  \item Function: \texttt{compute\_ProbTrans}
+  \item Function: \texttt{compute\_transition}
+  \item Subroutine: \texttt{FCN\_int}
   \end{itemize}
 \end{itemize}
 
@@ -397,4 +411,18 @@ Outputs:
     !        o) pretty\_braket: character type \\
     ! \\
   }
+
+
+  \chapter{Programs}
+  \section{BuckProgram\_fit}
+  See {\em BuckProgram\_fit.f90} file and {\em BPfit.inp} input in
+  {\rm scr/} folder.
+
+  \section{IntProgram\_fit}
+  \subsection{Input File}
+  \subsection{Definitions}
+  \begin{itemize}
+  \item 
+  \end{itemize}
+  
 \end{document}

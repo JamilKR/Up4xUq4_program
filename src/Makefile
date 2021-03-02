@@ -4,14 +4,17 @@ BIN   = ../bin/
 
 
 FC = gfortran
-#FFLAGS = -g -Wall -O3 -fcheck=all -cpp
-FFLAGS = -Wall -O3 -cpp -fopenmp
+FFLAGS = -g -Wall -O3 -fcheck=all -cpp
+#FFLAGS = -Wall -O3 -cpp -fopenmp
 
 MODLIB = -I/usr/local/lib/lapack95/lapack95_modules
 OPTLIB = -lblas -llapack /usr/local/lib/lapack95/lapack95.a
 
 BuckPgm_src = MOD_matfun.f90 MOD_Up4.f90 MOD_Uq4.f90 MOD_Up_x_Uq.f90  minuit-cern.f BuckProgram_fit.f90
 BuckPgm_obj = $(addsuffix .o, $(basename ${BuckPgm_src}))
+
+IntPgm_src = MOD_matfun.f90 MOD_Up4.f90 MOD_Uq4.f90 MOD_Up_x_Uq.f90  minuit-cern.f IntProgram_fit.f90
+IntPgm_obj = $(addsuffix .o, $(basename ${IntPgm_src}))
 
 test_src = MOD_matfun.f90 MOD_Up4.f90 MOD_Uq4.f90 test.f90
 test_obj = $(addsuffix .o, $(basename ${test_src}))
@@ -49,7 +52,7 @@ test_9_obj = $(addsuffix .o, $(basename ${test_9_src}))
 %.o: %.f
 	$(FC) -O3 -c  -o $@ $<
 
-all: help BuckProgram_fit #test test_2 test_3 test_4 test_5 test_6
+all: help BuckProgram_fit IntProgram_fit#test test_2 test_3 test_4 test_5 test_6
 
 help:
 	@echo
@@ -59,7 +62,11 @@ help:
 	@echo
 
 BuckProgram_fit: $(BuckPgm_obj)
+	$(FC) $(FFLAGS)  -o $(BIN)$@".out" $^ $(OPTLIB)
+
+IntProgram_fit: $(IntPgm_obj)
 	$(FC) $(FFLAGS)  -o $(BIN)$@".out" $^ $(OPTLIB)	
+
 
 test: $(test_obj)
 	$(FC) $(FFLAGS)  -o $(BIN)$@".out" $^ $(OPTLIB)

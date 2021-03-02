@@ -1,0 +1,22 @@
+#
+# IntProgram_fit input
+#
+&num Npval=34, Nqval=5, lambda_max=5, inp_exp="exp_T200_REASSGND.dat" /
+#
+&mol bet=-1081.67d0, gam=58.3236223d0, gam2=-0.03538353d0, kap=0.80481241d0 /
+#
+&cag a=179.019967d0, b=8.44032471d0, c=-3.21767353d0, d=0.0d0 /
+#
+&int Qpq=0.85290463d0, Qpqw=-0.02732809d0, v1=-1.05123074d0 /
+#
+#
+&top temp=6.0d0, npo = 0.5d0, dnD=1.0d0, dQD=1.0d0, qQn=0.1d0 /
+#
+&fit Fit_par="fix  " /
+
+#
+# npo ---> 1
+# dnD ---> 2
+# dQD ---> 3
+# qQn ---> 4
+
