@@ -667,7 +667,13 @@ contains
     ! Optional argument to compute eigenvectors
     logical,optional:: avec
     ! Auxiliary memory to store temporally the coefficients
+    !
     type(matrix):: auxV(0:lambda_max)
+    !
+#ifdef __INTEL_COMPILER
+    double precision, allocatable:: vectors(:,:)
+    call mkl_set_dynamic(0)
+#endif
     ! Default value of avec...
     if (.not. present(avec)) then
        avec = .false.
@@ -684,11 +690,6 @@ contains
        enddo
        !
     endif
-    !
-#ifdef __INTEL_COMPILER
-    double precision, allocatable:: vectors(:,:)
-    call mkl_set_dynamic(0)
-#endif
     !
 #ifdef __GFORTRAN__
     !$OMP PARALLEL DO DEFAULT(SHARED), PRIVATE(aux,j,k,state)
