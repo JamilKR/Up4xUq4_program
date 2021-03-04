@@ -1160,7 +1160,8 @@ contains
                   exp_data(i)%ist(5),'k')) //' ---> '// trim(pretty_braket( &
                   exp_data(i)%fst(1),exp_data(i)%fst(2),exp_data(i)%fst(3), &
                   exp_data(i)%fst(4),exp_data(i)%fst(5),'k'))// ' : ', &
-                  exp_data(i)%intensity - comp_int, "---", comp_int 
+                  (exp_data(i)%intensity - comp_int)*100.d0/exp_data(i)%intensity, &
+                  "% ---", comp_int 
           endif
           !
        enddo

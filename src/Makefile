@@ -7,10 +7,10 @@ FC = gfortran
 # FFLAGS = -g -Wall -O3 -fcheck=all -cpp
 FFLAGS = -Wall -O3 -cpp -fopenmp
 
-# MODLIB = -I/usr/local/lib/lapack95/lapack95_modules
-# OPTLIB = -lblas -llapack /usr/local/lib/lapack95/lapack95.a
-MODLIB = -I/opt/LAPACK95/lapack95_modules
-OPTLIB = -llapack /opt/LAPACK95/liblapack95.a
+MODLIB = -I/usr/local/lib/lapack95/lapack95_modules
+OPTLIB = -lblas -llapack /usr/local/lib/lapack95/lapack95.a
+# MODLIB = -I/opt/LAPACK95/lapack95_modules
+# OPTLIB = -llapack /opt/LAPACK95/liblapack95.a
 
 
 BuckPgm_src = MOD_matfun.f90 MOD_Up4.f90 MOD_Uq4.f90 MOD_Up_x_Uq.f90  minuit-cern.f BuckProgram_fit.f90

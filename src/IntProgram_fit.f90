@@ -169,10 +169,6 @@ program BuckProgram
   !
   close(12)
   !
-
-  write(*,*) chi2_int( (/npo, dnD, qQn/) )
-
-  !
   write(*,'(/,A)') "Calling minuit ..."
   !
   open(unit=ird,file='minuit_input_int.inp',status='old')
