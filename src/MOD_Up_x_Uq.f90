@@ -487,7 +487,7 @@ contains
     !
     do line=1,dim
        !
-       read(nt,123) data(line)%ist(1),data(line)%ist(2),data(line)%ist(3), &
+       read(nt,*) data(line)%ist(1),data(line)%ist(2),data(line)%ist(3), &
             data(line)%ist(4),data(line)%ist(5), data(line)%fst(1),data(line)%fst(2), &
             data(line)%fst(3),data(line)%fst(4),data(line)%fst(5),data(line)%energy, &
             data(line)%intensity
@@ -518,7 +518,7 @@ contains
        !
     enddo
     !
-123 format(10I2,F7.1,F4.2)
+!123 format(10I2,F7.1,F4.2)
     !
     close(nt)
     !
@@ -675,9 +675,26 @@ contains
     call mkl_set_dynamic(0)
 #endif
     ! Default value of avec...
-    if (.not. present(avec)) then
-       avec = .false.
-    elseif (avec .eqv. .true.) then
+    ! if (present(avec).eqv. .false.) then
+    !    avec = .false.
+    !    print *, 'ok1'
+    ! elseif (avec .eqv. .true.) then
+    !    print*,'ok2'
+    !    ! Allocate auxV:
+    !    do i=0,lambda_max
+    !       !
+    !       allocate( AuxV(i)%para(1:dim_para(i),1:dim_para(i)), &
+    !            AuxV(i)%ortho(1:dim_ortho(i),1:dim_ortho(i)) )
+    !       !
+    !       AuxV(i)%para = 0.0d0
+    !       AuxV(i)%ortho= 0.0d0
+    !       !
+    !    enddo
+    !    !
+    ! endif
+    !
+    if ((present(avec)) .and. (avec.eqv..true.))then
+       print*,'ok1'
        ! Allocate auxV:
        do i=0,lambda_max
           !
@@ -723,7 +740,7 @@ contains
           k = find_pos(state,basis_para)
           paraE(k) = aux(j)
           ! Ordering eigenvectors if avec=.true.
-          if ( avec .eqv. .true.) then
+          if (((present(avec)) .and. (avec.eqv..true.))) then
              auxV(i)%para(:,k-sum(dim_para(0:i-1))) = Ham(i)%para(:,j)
           endif
        enddo
@@ -747,7 +764,7 @@ contains
           k = find_pos(state,basis_ortho)
           orthoE(k) = aux(j)
           ! Ordering eigenvectors if avec=.true.
-          if ( avec .eqv. .true.) then
+          if ((present(avec)) .and. (avec.eqv..true.)) then
              auxV(i)%ortho(:,k-sum(dim_ortho(0:i-1))) = Ham(i)%ortho(:,j)
           endif
        enddo
@@ -755,7 +772,7 @@ contains
        !
        ! If avec ---> eigenvectors are stored in Hmatrix (so ... the
        ! Hamiltonian is killed ...)
-       if (avec .eqv. .true.) then
+       if ((present(avec)) .and. (avec.eqv..true.)) then
           Ham(i)%para = auxV(i)%para
           Ham(i)%ortho= auxV(i)%ortho
        endif
@@ -1119,6 +1136,9 @@ contains
     ! params(3) ---> dQD
     ! params(4) ---> qQn
     !
+    ! 05/03/2021
+    ! chi2 = sum[ { (exp-comp)/exp }**2 } ]
+    !
     implicit none
     !
     double precision,intent(in):: params(1:4)
@@ -1131,10 +1151,8 @@ contains
     !
     do i=1,total_exp
        !
-
-       !
-       chi2_int = chi2_int + ( exp_data(i)%intensity - &
-            compute_transition(params,exp_data(i),i) )**2.0d0
+       chi2_int = chi2_int + ( (exp_data(i)%intensity - &
+            compute_transition(params,exp_data(i),i))/exp_data(i)%intensity )**2.0d0
        !
     enddo
     !
@@ -1147,7 +1165,7 @@ contains
           !
           if ( mod(exp_data(i)%ist(2),2) == 0 ) then ! para-state
              !
-             write(*,'(A,F8.4,A,F8.4)') " Para:"// trim(pretty_braket(exp_data(i)%ist(1), &
+             write(*,'(A,F8.2,A,F8.4)') " Para:"// trim(pretty_braket(exp_data(i)%ist(1), &
                   exp_data(i)%ist(2),exp_data(i)%ist(3),exp_data(i)%ist(4), &
                   exp_data(i)%ist(5),'k'))//' ---> '// trim(pretty_braket( &
                   exp_data(i)%fst(1),exp_data(i)%fst(2),exp_data(i)%fst(3), &
@@ -1157,7 +1175,7 @@ contains
              !
           else !ortho-state
              !
-             write(*,'(A,F8.4,A,F8.4)') "Ortho:"// trim(pretty_braket(exp_data(i)%ist(1), &
+             write(*,'(A,F8.2,A,F8.4)') "Ortho:"// trim(pretty_braket(exp_data(i)%ist(1), &
                   exp_data(i)%ist(2),exp_data(i)%ist(3),exp_data(i)%ist(4), &
                   exp_data(i)%ist(5),'k')) //' ---> '// trim(pretty_braket( &
                   exp_data(i)%fst(1),exp_data(i)%fst(2),exp_data(i)%fst(3), &
@@ -1217,7 +1235,7 @@ contains
           enddo
        enddo
        !
-       compute_ProbTrans = (1.0d0/npo) * dble(2*transition%ist(5)+1) * &
+       compute_ProbTrans = (1.0d0-npo) * dble(2*transition%ist(5)+1) * &
             exp(-EnergiesOrtho(transition%i_pos) / Temp )
        !
     endif
