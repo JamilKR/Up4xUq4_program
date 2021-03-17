@@ -1302,8 +1302,59 @@ contains
     write(*,31) fval, sqrt(fval/dble(total_exp-npar)), sqrt(fval/dble(total_exp))
 31  format('CHI2 =',F17.2,', RMS = ', F14.4, ', SIGMA = ', F14.4)
     !
-  end subroutine FCN_INT
-  
+  end subroutine FCN_INT 
+  !  
+  !*****************************************************************************************
+  !
+  subroutine save_energies(paraE, orthoE, lambda_max )
+    !
+    ! Save energies: [para/ortho]E_Np{}_Nq{}_lambmax{}.dat
+    !
+    ! v  J  n  L  lamb  E(cm-1)
+    !
+    double precision, intent(in)::  paraE(1:sum(dim_para)), orthoE(1:sum(dim_ortho))
+    integer, intent(in):: lambda_max
+    integer:: i
+    character(len=50):: output, aux
+    !
+    ! File Name:
+    write(aux,'(I4)') Npval
+    output='E_Np'//trim(adjustl(aux))
+    aux=''
+    write(aux,'(I4)') Nqval
+    output = trim(output)//'_Nq'//trim(adjustl(aux))
+    write(aux,'(I4)') lambda_max
+    output = trim(output)//'_lambda_max'//trim(adjustl(aux))//'.dat'
+    !
+    open(unit=12, file='para'//trim(output),status='replace')
+    open(unit=21,file='ortho'//trim(output),status='replace')
+    write(12,'(A)') "Para: v J n L lambda E(cm-1)"
+    write(21,'(A)') "Para: v J n L lambda E(cm-1)"
+    !
+    do i =1,sum(dim_para)
+       !
+       write(12,123) &
+            (Npval-basis_para(1,i))/2, basis_para(2,i), &
+            basis_para(3,i), basis_para(4,i), &
+            basis_para(5,i), paraE(i)
+       !
+    enddo
+    !
+    do i =1,sum(dim_ortho)
+       !
+       write(21,123) &
+            (Npval-basis_ortho(1,i))/2, basis_ortho(2,i), &
+            basis_ortho(3,i), basis_ortho(4,i), &
+            basis_ortho(5,i), orthoE(i)
+       !
+    enddo
+    !
+123 format(5I5,D30.10)
+    !
+    close(12)
+    close(21)
+    !
+  end subroutine save_energies
   !  
   !*****************************************************************************************
   !

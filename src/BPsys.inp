@@ -1,0 +1,12 @@
+#
+# BuckSystem input
+#
+&num Npval=34, Nqval=5, lambda_max=2  /
+#
+&mol bet=-1081.67d0, gam=58.3236223d0, gam2=-0.03538353d0, kap=0.80481241d0 /
+#
+&cag a=179.019967d0, b=8.44032471d0, c=-3.21767353d0, d=0.0d0 /
+#
+&int Qpq=0.85290463d0, Qpqw=-0.02732809d0, v1=-1.05123074d0 /
+#
+

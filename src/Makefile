@@ -7,10 +7,10 @@ FC = gfortran
 # FFLAGS = -g -Wall -O3 -fcheck=all -cpp
 FFLAGS = -Wall -O3 -cpp -fopenmp
 
-# MODLIB = -I/usr/local/lib/lapack95/lapack95_modules
-# OPTLIB = -lblas -llapack /usr/local/lib/lapack95/lapack95.a
-MODLIB = -I/opt/LAPACK95/lapack95_modules
-OPTLIB = -llapack /opt/LAPACK95/liblapack95.a
+MODLIB = -I/usr/local/lib/lapack95/lapack95_modules
+OPTLIB = -lblas -llapack /usr/local/lib/lapack95/lapack95.a
+# MODLIB = -I/opt/LAPACK95/lapack95_modules
+# OPTLIB = -llapack /opt/LAPACK95/liblapack95.a
 
 
 BuckPgm_src = MOD_matfun.f90 MOD_Up4.f90 MOD_Uq4.f90 MOD_Up_x_Uq.f90  minuit-cern.f BuckProgram_fit.f90
@@ -18,6 +18,11 @@ BuckPgm_obj = $(addsuffix .o, $(basename ${BuckPgm_src}))
 
 IntPgm_src = MOD_matfun.f90 MOD_Up4.f90 MOD_Uq4.f90 MOD_Up_x_Uq.f90  minuit-cern.f IntProgram_fit.f90
 IntPgm_obj = $(addsuffix .o, $(basename ${IntPgm_src}))
+
+BuckSys_src = MOD_matfun.f90 MOD_Up4.f90 MOD_Uq4.f90 MOD_Up_x_Uq.f90 BPsystem.f90
+BuckSys_obj = $(addsuffix .o, $(basename ${BuckSys_src}))
+
+
 
 test_src = MOD_matfun.f90 MOD_Up4.f90 MOD_Uq4.f90 test.f90
 test_obj = $(addsuffix .o, $(basename ${test_src}))
@@ -55,7 +60,7 @@ test_9_obj = $(addsuffix .o, $(basename ${test_9_src}))
 %.o: %.f
 	$(FC) -O3 -c  -o $@ $<
 
-all: help BuckProgram_fit IntProgram_fit#test test_2 test_3 test_4 test_5 test_6
+all: help BuckProgram_fit IntProgram_fit BuckSystem  #test test_2 test_3 test_4 test_5 test_6
 
 help:
 	@echo
@@ -69,6 +74,10 @@ BuckProgram_fit: $(BuckPgm_obj)
 
 IntProgram_fit: $(IntPgm_obj)
 	$(FC) $(FFLAGS)  -o $(BIN)$@".out" $^ $(OPTLIB)	
+
+BuckSystem: $(BuckSys_obj)
+	$(FC) $(FFLAGS)  -o $(BIN)$@".out" $^ $(OPTLIB)	
+
 
 
 test: $(test_obj)
@@ -99,4 +108,4 @@ test_9: $(test_9_obj)
 	$(FC) $(FFLAGS)  -o $@".out" $^ $(OPTLIB)
 
 clean:
-	@rm -f *.o *.mod *.out *~ $(BIN)"BuckProgram_fit.out"
+	rm -f *.o *.mod *.out *~ $(BIN)*.out
