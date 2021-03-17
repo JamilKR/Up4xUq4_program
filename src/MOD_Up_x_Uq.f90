@@ -487,7 +487,7 @@ contains
     !
     do line=1,dim
        !
-       read(nt,*) data(line)%ist(1),data(line)%ist(2),data(line)%ist(3), &
+       read(nt,123) data(line)%ist(1),data(line)%ist(2),data(line)%ist(3), &
             data(line)%ist(4),data(line)%ist(5), data(line)%fst(1),data(line)%fst(2), &
             data(line)%fst(3),data(line)%fst(4),data(line)%fst(5),data(line)%energy, &
             data(line)%intensity
@@ -518,7 +518,7 @@ contains
        !
     enddo
     !
-!123 format(10I2,F7.1,F4.2)
+123 format(10I2,F7.1,F4.2)
     !
     close(nt)
     !
@@ -694,7 +694,6 @@ contains
     ! endif
     !
     if ((present(avec)) .and. (avec.eqv..true.))then
-       print*,'ok1'
        ! Allocate auxV:
        do i=0,lambda_max
           !
@@ -991,59 +990,59 @@ contains
        if ( mod(exp_data(trans)%ist(2),2) == 0 ) then! para-case
           !
           intop(trans,1) = EigenExpected( &
-               Ham( exp_data(trans)%ist(5) )%para(:,i_pos- &
-               sum(dim_para(0:exp_data(trans)%ist(5)-1))), & ! coefs1
-               exp_data(trans)%ist(5),                     & ! lamb1
                Ham( exp_data(trans)%fst(5) )%para(:,f_pos- &
-               sum(dim_para(0:exp_data(trans)%fst(5)-1))), & ! coef2
-               exp_data(trans)%fst(5),                     & ! lamb2
+               sum(dim_para(0:exp_data(trans)%fst(5)-1))), & ! coefs1
+               exp_data(trans)%fst(5),                     & ! lamb1
+               Ham( exp_data(trans)%ist(5) )%para(:,i_pos- &
+               sum(dim_para(0:exp_data(trans)%ist(5)-1))), & ! coef2
+               exp_data(trans)%ist(5),                     & ! lamb2
                0,  RME_np_x_Dq_1)
           !
           intop(trans,2) = EigenExpected( &
-               Ham( exp_data(trans)%ist(5) )%para(:,i_pos- &
-               sum(dim_para(0:exp_data(trans)%ist(5)-1))), & ! coefs1
-               exp_data(trans)%ist(5),                     & ! lamb1
                Ham( exp_data(trans)%fst(5) )%para(:,f_pos- &
-               sum(dim_para(0:exp_data(trans)%fst(5)-1))), & ! coef2
-               exp_data(trans)%fst(5),                     & ! lamb2
+               sum(dim_para(0:exp_data(trans)%fst(5)-1))), & ! coefs1
+               exp_data(trans)%fst(5),                     & ! lamb1
+               Ham( exp_data(trans)%ist(5) )%para(:,i_pos- &
+               sum(dim_para(0:exp_data(trans)%ist(5)-1))), & ! coef2
+               exp_data(trans)%ist(5),                     & ! lamb2
                0,  RME_Qp2_x_Dq_1)
           !
           intop(trans,3) = EigenExpected( &
-               Ham( exp_data(trans)%ist(5) )%para(:,i_pos- &
-               sum(dim_para(0:exp_data(trans)%ist(5)-1))), & ! coefs1
-               exp_data(trans)%ist(5),                     & ! lamb1
                Ham( exp_data(trans)%fst(5) )%para(:,f_pos- &
-               sum(dim_para(0:exp_data(trans)%fst(5)-1))), & ! coef2
-               exp_data(trans)%fst(5),                     & ! lamb2
+               sum(dim_para(0:exp_data(trans)%fst(5)-1))), & ! coefs1
+               exp_data(trans)%fst(5),                     & ! lamb1
+               Ham( exp_data(trans)%ist(5) )%para(:,i_pos- &
+               sum(dim_para(0:exp_data(trans)%ist(5)-1))), & ! coef2
+               exp_data(trans)%ist(5),                     & ! lamb2
                0,  RME_Qp2_x_nq_2)
           !
        else ! ortho-case
           !
           intop(trans,1) = EigenExpected( &
-               Ham( exp_data(trans)%ist(5) )%ortho(:,i_pos- &
-               sum(dim_ortho(0:exp_data(trans)%ist(5)-1))), & ! coefs1
-               exp_data(trans)%ist(5),                      & ! lamb1
                Ham( exp_data(trans)%fst(5) )%ortho(:,f_pos- &
-               sum(dim_ortho(0:exp_data(trans)%fst(5)-1))), & ! coef2
-               exp_data(trans)%fst(5),                      & ! lamb2
+               sum(dim_ortho(0:exp_data(trans)%fst(5)-1))), & ! coefs1
+               exp_data(trans)%fst(5),                      & ! lamb1
+               Ham( exp_data(trans)%ist(5) )%ortho(:,i_pos- &
+               sum(dim_ortho(0:exp_data(trans)%ist(5)-1))), & ! coef2
+               exp_data(trans)%ist(5),                      & ! lamb2
                1,  RME_np_x_Dq_1) 
           !
           intop(trans,2) = EigenExpected( &
-               Ham( exp_data(trans)%ist(5) )%ortho(:,i_pos- &
-               sum(dim_ortho(0:exp_data(trans)%ist(5)-1))), & ! coefs1
-               exp_data(trans)%ist(5),                      & ! lamb1
                Ham( exp_data(trans)%fst(5) )%ortho(:,f_pos- &
-               sum(dim_ortho(0:exp_data(trans)%fst(5)-1))), & ! coef2
-               exp_data(trans)%fst(5),                      & ! lamb2
+               sum(dim_ortho(0:exp_data(trans)%fst(5)-1))), & ! coefs1
+               exp_data(trans)%fst(5),                      & ! lamb1
+               Ham( exp_data(trans)%ist(5) )%ortho(:,i_pos- &
+               sum(dim_ortho(0:exp_data(trans)%ist(5)-1))), & ! coef2
+               exp_data(trans)%ist(5),                      & ! lamb2
                1,  RME_Qp2_x_Dq_1)
           !
           intop(trans,3) = EigenExpected( &
-               Ham( exp_data(trans)%ist(5) )%ortho(:,i_pos- &
-               sum(dim_ortho(0:exp_data(trans)%ist(5)-1))), & ! coefs1
-               exp_data(trans)%ist(5),                      & ! lamb1
                Ham( exp_data(trans)%fst(5) )%ortho(:,f_pos- &
-               sum(dim_ortho(0:exp_data(trans)%fst(5)-1))), & ! coef2
-               exp_data(trans)%fst(5),                      & ! lamb2
+               sum(dim_ortho(0:exp_data(trans)%fst(5)-1))), & ! coefs1
+               exp_data(trans)%fst(5),                      & ! lamb1
+               Ham( exp_data(trans)%ist(5) )%ortho(:,i_pos- &
+               sum(dim_ortho(0:exp_data(trans)%ist(5)-1))), & ! coef2
+               exp_data(trans)%ist(5),                      & ! lamb2
                1,  RME_Qp2_x_nq_2)
           !
        endif
@@ -1266,13 +1265,19 @@ contains
        !
        compute_transition = compute_ProbTrans(params(1),transition)* &
             ( EnergiesPara( transition%f_pos ) - EnergiesPara( transition%i_pos ) ) * &
-            abs(params(2)*intop(i,1)+params(3)*intop(i,2)+params(4)*intop(i,3))
+            ( &
+            params(2)*abs(intop(i,1))**2.0d0 + &
+            params(3)*abs(intop(i,2))**2.0d0 + &
+            params(4)*abs(intop(i,3))**2.0d0    )
        !
     else !ortho-case
        !
        compute_transition = compute_ProbTrans(params(1),transition)* &
             ( EnergiesOrtho( transition%f_pos ) - EnergiesOrtho( transition%i_pos ) ) * &
-            abs(params(2)*intop(i,1)+params(3)*intop(i,2)+params(4)*intop(i,3))
+            ( &
+            params(2)*abs(intop(i,1))**2.0d0 + &
+            params(3)*abs(intop(i,2))**2.0d0 + &
+            params(4)*abs(intop(i,3))**2.0d0    )
        !
     endif
   end function compute_transition
